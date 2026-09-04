@@ -9,11 +9,24 @@ import HistoryTimeline from "../../components/charts/HistoryTimeline";
 import RainfallTrendChart from "../../components/charts/RainfallTrendChart";
 import RelocationBox from "../../components/relocation/RelocationBox";
 import { api } from "../../services/api";
-import type { Village, VillageDetail, RelocationPlan } from "../../types";
+import type { Village, VillageDetail, RelocationPlan, SafeSite } from "../../types";
+
+const TARGET_REGIONS = ["West Bengal", "Bihar", "Odisha", "Jharkhand", "Sikkim", "Nepal"];
+
+const QUICK_MODULES = [
+  { title: "Risk Analysis", description: "Live hazard, exposure and vulnerability assessment", path: "/" },
+  { title: "Safe Sites", description: "Find and inspect nearby evacuation locations", path: "/safe-sites" },
+  { title: "Relocation", description: "Plan capacity-aware evacuation and routes", path: "/relocation" },
+  { title: "Past Incidents", description: "Review regional disaster history and lessons", path: "/analytics" },
+  { title: "Alerts", description: "Review critical warnings and response status", path: "/alerts" },
+  { title: "Analytics", description: "Compare current conditions with historical events", path: "/analytics" },
+];
 
 export default function Dashboard() {
   const navigate = useNavigate();
   const [villages, setVillages] = useState<Village[]>([]);
+  const [safeSites, setSafeSites] = useState<SafeSite[]>([]);
+  const [region, setRegion] = useState("");
   const [district, setDistrict] = useState("");
   const [level, setLevel] = useState("");
   const [selectedId, setSelectedId] = useState<string | null>(null);
@@ -22,38 +35,75 @@ export default function Dashboard() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    api.villages.list().then((data) => {
-      setVillages(data);
-      setLoading(false);
-    });
+    Promise.all([api.villages.list(), api.safeSites.list()])
+      .then(([villageData, siteData]) => {
+        setVillages(villageData);
+        setSafeSites(siteData);
+      })
+      .finally(() => setLoading(false));
   }, []);
 
-  const filtered = useMemo(() => {
-    return villages.filter((v) => {
-      if (district && v.district !== district) return false;
-      if (level && v.level !== level) return false;
-      return true;
-    });
-  }, [villages, district, level]);
+  const regions = useMemo(() => {
+    const available = Array.from(new Set(villages.map((v) => v.state))).filter(Boolean);
+    return Array.from(new Set([...TARGET_REGIONS, ...available]));
+  }, [villages]);
 
-  const districts = useMemo(
-    () => Array.from(new Set(villages.map((v) => v.district))),
-    [villages]
-  );
+  const filtered = useMemo(() => villages.filter((v) => {
+    if (region && v.state !== region) return false;
+    if (district && v.district !== district) return false;
+    if (level && v.level !== level) return false;
+    return true;
+  }), [villages, region, district, level]);
+
+  const districts = useMemo(() => {
+    const source = region ? villages.filter((v) => v.state === region) : villages;
+    return Array.from(new Set(source.map((v) => v.district))).sort();
+  }, [villages, region]);
+
+  useEffect(() => {
+    if (district && !districts.includes(district)) setDistrict("");
+  }, [district, districts]);
 
   async function handleSelect(v: Village) {
     setSelectedId(v.id);
-    const [d, p] = await Promise.all([
-      api.villages.get(v.id),
-      api.relocation.plan(v.id),
-    ]);
+    const [d, p] = await Promise.all([api.villages.get(v.id), api.relocation.plan(v.id)]);
     setDetail(d);
     setPlan(p);
   }
 
+  function changeRegion(value: string) {
+    setRegion(value);
+    setDistrict("");
+    setSelectedId(null);
+    setDetail(null);
+    setPlan(null);
+  }
+
   return (
-    <div style={{ display: "flex", flexDirection: "column", flex: 1, minHeight: 0 }}>
+    <div className="dashboard-page">
+      <section className="dashboard-hero">
+        <div>
+          <span className="eyebrow">DISASTER RESPONSE COMMAND CENTER</span>
+          <h1>RakshaSetu</h1>
+          <p>Regional risk intelligence, safe-site discovery and coordinated evacuation planning.</p>
+        </div>
+        <div className="region-pills">
+          {regions.map((item) => (
+            <button
+              key={item}
+              className={`region-pill ${region === item ? "active" : ""}`}
+              onClick={() => changeRegion(region === item ? "" : item)}
+            >
+              {item}
+            </button>
+          ))}
+        </div>
+      </section>
+
       <FilterBar
+        regions={regions}
+        region={region}
+        setRegion={changeRegion}
         districts={districts}
         district={district}
         setDistrict={setDistrict}
@@ -61,74 +111,79 @@ export default function Dashboard() {
         setLevel={setLevel}
       />
 
-      <div style={{ display: "flex", flex: 1, minHeight: 0 }}>
-        <div style={{ flex: 3, position: "relative", borderRight: "1px solid var(--border-subtle)" }}>
+      <section className="command-grid">
+        <div className="map-stage">
           {loading ? (
-            <div style={{ padding: 40, color: "var(--text-muted)" }}>Loading map data…</div>
+            <div className="map-loading">Loading regional intelligence…</div>
           ) : (
-            <RiskMap
-              villages={filtered}
-              selectedId={selectedId}
-              onSelectVillage={handleSelect}
-            />
+            <RiskMap villages={filtered} safeSites={safeSites} selectedId={selectedId} onSelectVillage={handleSelect} />
           )}
-
-          <div
-            style={{
-              position: "absolute",
-              bottom: 16,
-              left: 16,
-              display: "flex",
-              gap: 14,
-              padding: "8px 14px",
-              background: "rgba(16,28,43,0.9)",
-              border: "1px solid var(--border-subtle)",
-              borderRadius: 8,
-              fontSize: 12,
-              zIndex: 1000,
-            }}
-          >
+          <div className="map-overlay-title">
+            <strong>{region || "Eastern Response Region"}</strong>
+            <span>{filtered.length} monitored locations</span>
+          </div>
+          <div className="map-legend">
             <Legend color="var(--risk-critical)" label="Critical" />
             <Legend color="var(--risk-high)" label="High" />
             <Legend color="var(--risk-moderate)" label="Moderate" />
             <Legend color="var(--risk-low)" label="Low" />
+            <Legend color="var(--safe)" label="Safe Site" />
           </div>
         </div>
 
-        <div style={{ flex: 1, padding: 16, minWidth: 320, maxWidth: 380 }}>
+        <aside className="details-stage">
+          <div className="panel-heading">
+            <div><span className="eyebrow">LIVE SELECTION</span><h2>Area Details</h2></div>
+            <span className="status-dot">LIVE</span>
+          </div>
           <SelectedAreaPanel
             village={detail}
             onViewRelocation={() => detail && navigate(`/relocation?village=${detail.id}`)}
           />
+        </aside>
+      </section>
+
+      <section className="dashboard-modules">
+        <div className="section-heading">
+          <div><span className="eyebrow">RESPONSE WORKSPACE</span><h2>Operational Modules</h2></div>
+          <span>{region || "All target regions"}</span>
         </div>
-      </div>
+        <div className="module-grid">
+          {QUICK_MODULES.map((module) => (
+            <button key={module.title} className="module-card" onClick={() => navigate(module.path)}>
+              <span className="module-kicker">RAKSHASETU</span>
+              <strong>{module.title}</strong>
+              <span>{module.description}</span>
+              <b>Open module →</b>
+            </button>
+          ))}
+        </div>
+      </section>
 
       {detail && (
-        <div className="scrollable" style={{ padding: 20, borderTop: "1px solid var(--border-subtle)" }}>
-          <div
-            style={{
-              display: "grid",
-              gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))",
-              gap: 16,
-            }}
-          >
+        <section className="detail-workspace">
+          <div className="section-heading">
+            <div><span className="eyebrow">SELECTED LOCATION</span><h2>{detail.name}</h2></div>
+            <span>{detail.district}, {detail.state}</span>
+          </div>
+          <div className="detail-grid">
             <PopulationProfile village={detail} />
             <HazardBars village={detail} />
             <RainfallTrendChart village={detail} />
             <HistoryTimeline village={detail} />
             {plan && <RelocationBox plan={plan} onViewRoute={() => navigate(`/relocation?village=${detail.id}`)} />}
           </div>
-        </div>
+        </section>
       )}
+
+      <button className="floating-assistant" onClick={() => navigate("/assistant")} aria-label="Open RakshaSetu AI Assistant">
+        <span className="assistant-orb">AI</span>
+        <span><strong>RakshaSetu</strong><small>AI Assistant</small></span>
+      </button>
     </div>
   );
 }
 
 function Legend({ color, label }: { color: string; label: string }) {
-  return (
-    <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-      <span style={{ width: 8, height: 8, borderRadius: "50%", background: color }} />
-      <span style={{ color: "var(--text-secondary)" }}>{label}</span>
-    </div>
-  );
+  return <span className="legend-item"><i style={{ background: color }} />{label}</span>;
 }
