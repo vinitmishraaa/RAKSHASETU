@@ -3,14 +3,23 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app.core.config import get_settings
 from app.api import villages, hazards, risk, safesites, relocation, alerts, history, reports, assistant
+from app.data import synthetic
+from app.data.regional import build_regional_data
 
 settings = get_settings()
+
+# Expand the original detailed demo into the full target response region.
+# The generated records are explicitly synthetic until verified GIS datasets
+# are connected.
+regional_villages, regional_sites = build_regional_data()
+synthetic.VILLAGES.extend(regional_villages)
+synthetic.SAFE_SITES.extend(regional_sites)
 
 app = FastAPI(
     title=settings.APP_NAME,
     description="RakshaSetu - disaster risk, red-zone identification and "
                  "relocation decision-support API.",
-    version="0.1.0",
+    version="0.2.0",
 )
 
 origins = [o.strip() for o in settings.CORS_ORIGINS.split(",") if o.strip()]
