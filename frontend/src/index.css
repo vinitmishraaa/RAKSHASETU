@@ -1,0 +1,164 @@
+@import url("https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500;600&display=swap");
+
+/* ------------------------------------------------------------------ */
+/* Design tokens                                                       */
+/* A field-operations / cartography console: deep chart-table navy,    */
+/* brass-amber for brand/interactive accents, and the red-orange-      */
+/* yellow-green risk scale reserved strictly for hazard meaning, never */
+/* used decoratively.                                                  */
+/* ------------------------------------------------------------------ */
+:root {
+  --bg-base: #0b1420;
+  --bg-panel: #101c2b;
+  --bg-panel-raised: #152436;
+  --bg-inset: #0e1a28;
+  --border-subtle: #223349;
+  --border-strong: #2f4560;
+
+  --text-primary: #eaf1f8;
+  --text-secondary: #9db2c9;
+  --text-muted: #6b7f96;
+
+  --brand: #d3963c;
+  --brand-soft: #f0b866;
+  --brand-dim: #2a2013;
+
+  --risk-critical: #e5484d;
+  --risk-high: #f2994a;
+  --risk-moderate: #f5c94a;
+  --risk-low: #3fb27f;
+
+  --info: #4f9cd9;
+
+  --font-ui: "Manrope", system-ui, -apple-system, sans-serif;
+  --font-data: "IBM Plex Mono", ui-monospace, monospace;
+
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 14px;
+
+  --shadow-panel: 0 1px 0 rgba(255, 255, 255, 0.03) inset, 0 8px 24px rgba(0, 0, 0, 0.35);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html, body, #root {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  background: var(--bg-base);
+  background-image:
+    radial-gradient(ellipse 900px 500px at 15% -10%, rgba(211, 150, 60, 0.06), transparent),
+    radial-gradient(ellipse 700px 500px at 100% 0%, rgba(79, 156, 217, 0.05), transparent);
+  color: var(--text-primary);
+  font-family: var(--font-ui);
+  -webkit-font-smoothing: antialiased;
+}
+
+h1, h2, h3, h4 {
+  margin: 0;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+
+p {
+  margin: 0;
+  color: var(--text-secondary);
+  line-height: 1.55;
+}
+
+button {
+  font-family: inherit;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+.mono {
+  font-family: var(--font-data);
+}
+
+.app-shell {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  overflow: hidden;
+}
+
+.scrollable {
+  overflow-y: auto;
+}
+
+/* Scrollbars */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--border-strong);
+  border-radius: 8px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+/* Focus visibility */
+:focus-visible {
+  outline: 2px solid var(--brand-soft);
+  outline-offset: 2px;
+}
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 600;
+  font-family: var(--font-data);
+}
+
+.panel {
+  background: var(--bg-panel);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-panel);
+}
+
+.btn {
+  border: 1px solid var(--border-strong);
+  background: var(--bg-panel-raised);
+  color: var(--text-primary);
+  padding: 9px 16px;
+  border-radius: var(--radius-md);
+  font-weight: 600;
+  font-size: 13px;
+  cursor: pointer;
+  transition: border-color 0.15s ease, background 0.15s ease;
+}
+.btn:hover {
+  border-color: var(--brand);
+  background: #1a2c40;
+}
+.btn-primary {
+  background: var(--brand);
+  border-color: var(--brand);
+  color: #1a1206;
+}
+.btn-primary:hover {
+  background: var(--brand-soft);
+  border-color: var(--brand-soft);
+}
+
+@media (max-width: 900px) {
+  .hide-mobile {
+    display: none !important;
+  }
+}

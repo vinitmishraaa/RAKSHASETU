@@ -1,0 +1,69 @@
+# ==========================================
+# RAKSHASETU - Git Ignore
+# ==========================================
+
+# ---------- Environment / Secrets ----------
+.env
+.env.*
+!.env.example
+
+# ---------- Node / Frontend ----------
+node_modules/
+dist/
+build/
+.vite/
+.npm/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# ---------- Python / Backend ----------
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+
+.venv/
+venv/
+env/
+ENV/
+
+*.egg-info/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# ---------- IDE / Editors ----------
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# ---------- OS ----------
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# ---------- Logs ----------
+*.log
+logs/
+
+# ---------- Temporary / Cache ----------
+.cache/
+.tmp/
+temp/
+tmp/
+
+# ---------- Coverage ----------
+.coverage
+coverage.xml
+htmlcov/
+
+# ---------- Database / Local Data ----------
+*.sqlite
+*.sqlite3
+*.db
+
+# ---------- Generated / Local Files ----------
+*.local

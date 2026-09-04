@@ -1,0 +1,45 @@
+version: "3.9"
+
+# The backend runs fine on its own (uvicorn) using the in-memory synthetic
+# dataset - you do NOT need docker-compose to try the prototype.
+#
+# This file is provided for when you're ready to move to a real
+# PostgreSQL + PostGIS store: uncomment DATABASE_URL in backend/.env to
+# point at the `postgis` service below, then wire app/data/synthetic.py
+# calls over to real repository queries.
+
+services:
+  postgis:
+    image: postgis/postgis:16-3.4
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: rakshasetu
+      POSTGRES_USER: rakshasetu
+      POSTGRES_PASSWORD: rakshasetu
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgis_data:/var/lib/postgresql/data
+
+  backend:
+    build: ./backend
+    restart: unless-stopped
+    env_file:
+      - ./backend/.env
+    ports:
+      - "8000:8000"
+    depends_on:
+      - postgis
+
+  frontend:
+    build: ./frontend
+    restart: unless-stopped
+    env_file:
+      - ./frontend/.env
+    ports:
+      - "5173:5173"
+    depends_on:
+      - backend
+
+volumes:
+  postgis_data:
