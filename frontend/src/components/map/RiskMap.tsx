@@ -1,38 +1,54 @@
 import { MapContainer, TileLayer, CircleMarker, Tooltip, Popup, useMap } from "react-leaflet";
 import { useEffect } from "react";
+import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import type { Village, SafeSite } from "../../types";
 
-interface RiskMapProps { villages: Village[]; safeSites?: SafeSite[]; selectedId?: string | null; onSelectVillage?: (village: Village) => void; center?: [number, number]; zoom?: number; }
+interface RiskMapProps {
+  villages: Village[];
+  safeSites?: SafeSite[];
+  selectedId?: string | null;
+  onSelectVillage?: (village: Village) => void;
+  region?: string;
+  district?: string;
+  center?: [number, number];
+  zoom?: number;
+}
 
-function RegionalViewport({ region }: { region?: string }) {
+function Viewport({ villages, region, district }: { villages: Village[]; region?: string; district?: string }) {
   const map = useMap();
   useEffect(() => {
-    if (!region) {
-      map.fitBounds([[20.0, 80.0], [30.8, 90.0]], { padding: [18, 18] });
+    map.invalidateSize();
+    if (!villages.length) return;
+    if (district || region) {
+      const bounds = L.latLngBounds(villages.map((v) => [v.lat, v.lng] as [number, number]));
+      map.fitBounds(bounds.pad(0.45), { padding: [24, 24], maxZoom: district ? 10 : 7, animate: true, duration: 0.8 });
+    } else {
+      map.fitBounds([[20.0, 80.0], [30.8, 90.0]], { padding: [20, 20], maxZoom: 7, animate: false });
     }
-  }, [map, region]);
+  }, [map, villages, region, district]);
   return null;
 }
 
-export default function RiskMap({ villages, safeSites = [], selectedId, onSelectVillage, center = [25.4, 86.0], zoom = 6 }: RiskMapProps) {
+export default function RiskMap({ villages, safeSites = [], selectedId, onSelectVillage, region, district, center = [25.4, 86.0], zoom = 6 }: RiskMapProps) {
   return (
-    <MapContainer center={center} zoom={zoom} style={{ height: "100%", width: "100%", background: "var(--bg-inset)" }} zoomControl>
-      <RegionalViewport />
-      <TileLayer attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors' url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
+    <MapContainer center={center} zoom={zoom} minZoom={4} maxZoom={14} scrollWheelZoom zoomControl doubleClickZoom dragging touchZoom style={{ height: "100%", width: "100%" }} preferCanvas>
+      <Viewport villages={villages} region={region} district={district} />
+      <TileLayer attribution='&copy; OpenStreetMap contributors &copy; CARTO' url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png" maxZoom={20} keepBuffer={2} updateWhenIdle />
 
       {villages.map((v) => {
         const isSelected = v.id === selectedId;
+        const tone = v.level.toLowerCase();
         return (
-          <CircleMarker key={v.id} center={[v.lat, v.lng]} radius={isSelected ? 16 : 10} pathOptions={{ color: v.color, fillColor: v.color, fillOpacity: isSelected ? 0.82 : 0.58, weight: isSelected ? 3 : 1.5 }} eventHandlers={{ click: () => onSelectVillage?.(v) }}>
-            <Tooltip direction="top" offset={[0, -8]}><strong>{v.name}</strong><br />{v.district}, {v.state}<br />Risk {v.risk_score} · {v.level}</Tooltip>
+          <CircleMarker key={v.id} center={[v.lat, v.lng]} radius={isSelected ? 15 : 10} className={`risk-pulse risk-pulse-${tone}`} pathOptions={{ color: v.color, fillColor: v.color, fillOpacity: isSelected ? 0.82 : 0.62, weight: isSelected ? 3 : 2 }} eventHandlers={{ click: () => onSelectVillage?.(v) }}>
+            <Tooltip direction="top" offset={[0, -8]}><strong>{v.name}</strong><br />{v.district}, {v.state}<br /><b>Risk {v.risk_score} · {v.level}</b><br />Population {v.population.toLocaleString()}</Tooltip>
           </CircleMarker>
         );
       })}
 
       {safeSites.map((s) => (
-        <CircleMarker key={s.id} center={[s.lat, s.lng]} radius={8} pathOptions={{ color: "#4db6e8", fillColor: "#4db6e8", fillOpacity: 0.7, weight: 2 }}>
-          <Popup><strong>{s.name}</strong><br />Available capacity: {s.available_capacity.toLocaleString()}<br />Facilities: {s.facilities.slice(0, 3).join(", ")}</Popup>
+        <CircleMarker key={s.id} center={[s.lat, s.lng]} radius={8} pathOptions={{ color: "#1976d2", fillColor: "#43a5f5", fillOpacity: 0.85, weight: 2 }}>
+          <Popup><strong>{s.name}</strong><br />SAFE SITE · Available {s.available_capacity.toLocaleString()}<br />Facilities: {s.facilities.slice(0, 4).join(", ")}</Popup>
         </CircleMarker>
       ))}
     </MapContainer>
