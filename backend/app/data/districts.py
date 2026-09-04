@@ -6,12 +6,7 @@ prototype data until verified GIS boundaries/centroids are connected.
 """
 
 TARGET_REGIONS = [
-    "West Bengal",
-    "Bihar",
-    "Odisha",
-    "Jharkhand",
-    "Sikkim",
-    "Nepal",
+    "West Bengal", "Bihar", "Odisha", "Jharkhand", "Sikkim", "Nepal",
 ]
 
 DISTRICTS = {
@@ -20,8 +15,7 @@ DISTRICTS = {
         "Darjeeling", "Hooghly", "Howrah", "Jalpaiguri", "Jhargram",
         "Kalimpong", "Kolkata", "Maldah", "Murshidabad", "Nadia",
         "North 24 Parganas", "South 24 Parganas", "Paschim Bardhaman",
-        "Paschim Medinipur", "Purba Bardhaman", "Purba Medinipur",
-        "Uttar Dinajpur", "Kolkata",
+        "Paschim Medinipur", "Purba Bardhaman", "Purba Medinipur", "Uttar Dinajpur",
     ],
     "Bihar": [
         "Araria", "Arwal", "Aurangabad", "Banka", "Begusarai", "Bhagalpur",
@@ -37,37 +31,32 @@ DISTRICTS = {
         "Cuttack", "Deogarh", "Dhenkanal", "Gajapati", "Ganjam", "Jagatsinghpur",
         "Jajpur", "Jharsuguda", "Kalahandi", "Kandhamal", "Kendrapara",
         "Kendujhar", "Khordha", "Koraput", "Malkangiri", "Mayurbhanj",
-        "Nabarangpur", "Nayagarh", "Nuapada", "Puri", "Rayagada",
-        "Sambalpur", "Subarnapur", "Sundargarh",
+        "Nabarangpur", "Nayagarh", "Nuapada", "Puri", "Rayagada", "Sambalpur",
+        "Subarnapur", "Sundargarh",
     ],
     "Jharkhand": [
         "Bokaro", "Chatra", "Deoghar", "Dhanbad", "Dumka", "East Singhbhum",
         "Garhwa", "Giridih", "Godda", "Gumla", "Hazaribagh", "Jamtara",
         "Khunti", "Koderma", "Latehar", "Lohardaga", "Pakur", "Palamu",
-        "Ramgarh", "Ranchi", "Sahibganj", "Seraikela Kharsawan", "Simdega",
-        "West Singhbhum",
+        "Ramgarh", "Ranchi", "Sahibganj", "Seraikela Kharsawan", "Simdega", "West Singhbhum",
     ],
-    "Sikkim": [
-        "Gangtok", "Gyalshing", "Mangan", "Namchi", "Pakyong", "Soreng",
-    ],
+    "Sikkim": ["Gangtok", "Gyalshing", "Mangan", "Namchi", "Pakyong", "Soreng"],
     "Nepal": [
         "Achham", "Arghakhanchi", "Baglung", "Baitadi", "Bajhang", "Bajura",
-        "Banke", "Bara", "Bardiya", "Bhaktapur", "Bhojpur", "Chitwan",
-        "Dadeldhura", "Dailekh", "Dang", "Darchula", "Dhading", "Dhankuta",
-        "Dhanusha", "Dolakha", "Dolpa", "Doti", "Eastern Rukum", "Gorkha",
-        "Gulmi", "Humla", "Ilam", "Jajarkot", "Jhapa", "Jumla", "Kailali",
-        "Kalikot", "Kanchanpur", "Kapilvastu", "Kaski", "Kathmandu", "Kavrepalanchok",
-        "Khotang", "Lalitpur", "Lamjung", "Mahottari", "Makwanpur", "Manang",
-        "Morang", "Mugu", "Mustang", "Myagdi", "Nawalpur", "Nuwakot", "Okhaldhunga",
-        "Palpa", "Panchthar", "Parasi", "Parbat", "Parsa", "Pyuthan", "Ramechhap",
-        "Rasuwa", "Rautahat", "Rolpa", "Rupandehi", "Salyan", "Sankhuwasabha",
-        "Saptari", "Sarlahi", "Sindhuli", "Sindhupalchok", "Siraha", "Solukhumbu",
-        "Sunsari", "Surkhet", "Syangja", "Tanahun", "Taplejung", "Tehrathum",
+        "Banke", "Bara", "Bardiya", "Bhaktapur", "Bhojpur", "Chitwan", "Dadeldhura",
+        "Dailekh", "Dang", "Darchula", "Dhading", "Dhankuta", "Dhanusha", "Dolakha",
+        "Dolpa", "Doti", "Eastern Rukum", "Gorkha", "Gulmi", "Humla", "Ilam", "Jajarkot",
+        "Jhapa", "Jumla", "Kailali", "Kalikot", "Kanchanpur", "Kapilvastu", "Kaski",
+        "Kathmandu", "Kavrepalanchok", "Khotang", "Lalitpur", "Lamjung", "Mahottari",
+        "Makwanpur", "Manang", "Morang", "Mugu", "Mustang", "Myagdi", "Nawalpur",
+        "Nuwakot", "Okhaldhunga", "Palpa", "Panchthar", "Parasi", "Parbat", "Parsa",
+        "Pyuthan", "Ramechhap", "Rasuwa", "Rautahat", "Rolpa", "Rupandehi", "Salyan",
+        "Sankhuwasabha", "Saptari", "Sarlahi", "Sindhuli", "Sindhupalchok", "Siraha",
+        "Solukhumbu", "Sunsari", "Surkhet", "Syangja", "Tanahun", "Taplejung", "Tehrathum",
         "Udayapur", "Western Rukum",
     ],
 }
 
-# Approximate bounding boxes used only to place synthetic prototype markers.
 REGION_BOUNDS = {
     "West Bengal": (21.5, 27.2, 85.8, 89.9),
     "Bihar": (24.0, 27.6, 83.3, 88.3),
