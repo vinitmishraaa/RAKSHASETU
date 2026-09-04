@@ -12,109 +12,41 @@ export default function Relocation() {
   const [villageId, setVillageId] = useState(searchParams.get("village") || "");
   const [plan, setPlan] = useState<RelocationPlan | null>(null);
   const [route, setRoute] = useState<any>(null);
+  const [routeLoading, setRouteLoading] = useState(false);
+  const [error, setError] = useState("");
 
   useEffect(() => {
-    Promise.all([api.villages.list(), api.safeSites.list()]).then(([v, s]) => {
-      setVillages(v);
-      setSites(s);
-      if (!villageId && v.length) setVillageId(v[0].id);
-    });
+    Promise.all([api.villages.list(), api.safeSites.list()]).then(([v, s]) => { setVillages(v); setSites(s); if (!villageId && v.length) setVillageId(v[0].id); }).catch(() => setError("Could not load relocation data."));
   }, []);
 
   useEffect(() => {
     if (!villageId) return;
-    setSearchParams({ village: villageId });
-    api.relocation.plan(villageId).then(setPlan);
-    setRoute(null);
-  }, [villageId]);
+    setSearchParams({ village: villageId }); setRoute(null); setError("");
+    api.relocation.plan(villageId).then(setPlan).catch(() => setError("Could not generate a relocation recommendation."));
+  }, [villageId, setSearchParams]);
 
   const selectedVillage = villages.find((v) => v.id === villageId);
+  const regionalSites = selectedVillage ? sites.filter((s) => !s.region || s.region === selectedVillage.state) : sites;
 
   async function handleViewRoute(siteId: string) {
     if (!villageId) return;
-    const r = await api.relocation.route(villageId, siteId);
-    setRoute(r);
+    setRouteLoading(true); setError("");
+    try { setRoute(await api.relocation.route(villageId, siteId)); }
+    catch { setError("Route could not be generated. Try another safe site."); }
+    finally { setRouteLoading(false); }
   }
 
-  return (
-    <div style={{ display: "flex", flex: 1, minHeight: 0 }}>
-      <div style={{ flex: 2, position: "relative", borderRight: "1px solid var(--border-subtle)" }}>
-        <RiskMap
-          villages={selectedVillage ? [selectedVillage] : villages}
-          safeSites={sites}
-          selectedId={villageId}
-          center={selectedVillage ? [selectedVillage.lat, selectedVillage.lng] : undefined}
-        />
-      </div>
-
-      <div style={{ flex: 1, minWidth: 340, maxWidth: 420, padding: 20, overflowY: "auto" }}>
-        <label style={{ display: "block", marginBottom: 16 }}>
-          <span style={{ fontSize: 12, color: "var(--text-muted)", fontWeight: 600 }}>VILLAGE</span>
-          <select
-            value={villageId}
-            onChange={(e) => setVillageId(e.target.value)}
-            style={{
-              display: "block",
-              marginTop: 6,
-              width: "100%",
-              background: "var(--bg-inset)",
-              color: "var(--text-primary)",
-              border: "1px solid var(--border-subtle)",
-              borderRadius: 6,
-              padding: "9px 10px",
-              fontSize: 14,
-            }}
-          >
-            {villages.map((v) => (
-              <option key={v.id} value={v.id}>
-                {v.name} ({v.level})
-              </option>
-            ))}
-          </select>
-        </label>
-
-        {plan && <RelocationBox plan={plan} onViewRoute={handleViewRoute} />}
-
-        {plan && plan.ranked_sites.length > 0 && (
-          <div className="panel" style={{ padding: 20, marginTop: 16 }}>
-            <h4 style={{ fontSize: 13, color: "var(--text-muted)", marginBottom: 12 }}>
-              SITE SUITABILITY RANKING
-            </h4>
-            {plan.ranked_sites.map((s, i) => (
-              <div
-                key={s.site_id}
-                style={{
-                  display: "flex",
-                  justifyContent: "space-between",
-                  alignItems: "center",
-                  padding: "10px 0",
-                  borderBottom: i < plan.ranked_sites.length - 1 ? "1px solid var(--border-subtle)" : "none",
-                }}
-              >
-                <div>
-                  <div style={{ fontSize: 13.5, fontWeight: 600 }}>{s.site_name}</div>
-                  <div style={{ fontSize: 11.5, color: "var(--text-muted)" }}>
-                    {s.distance_km} km · {s.road_access} access
-                  </div>
-                </div>
-                <div className="mono" style={{ fontSize: 16, fontWeight: 700, color: i === 0 ? "var(--brand)" : "var(--text-primary)" }}>
-                  {s.suitability}
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
-
-        {route && (
-          <div className="panel" style={{ padding: 20, marginTop: 16 }}>
-            <h4 style={{ fontSize: 13, color: "var(--text-muted)", marginBottom: 10 }}>ROUTE</h4>
-            <p style={{ fontSize: 13 }}>
-              {route.from.name} → {route.to.name}: <strong className="mono">{route.distance_km} km</strong>
-            </p>
-            <p style={{ fontSize: 11.5, marginTop: 8, color: "var(--text-muted)" }}>{route.note}</p>
-          </div>
-        )}
-      </div>
+  return <div className="relocation-command">
+    <div className="relocation-map"><RiskMap villages={selectedVillage ? [selectedVillage] : villages} safeSites={regionalSites} selectedId={villageId} route={route?.path} center={selectedVillage ? [selectedVillage.lat, selectedVillage.lng] : undefined} /></div>
+    <div className="relocation-panel">
+      <div className="panel-heading"><div><span className="eyebrow">EVACUATION COMMAND</span><h2>Safe relocation</h2></div><span className="status-dot">LIVE</span></div>
+      <label className="relocation-select"><span>SELECT ZONE</span><select value={villageId} onChange={(e) => setVillageId(e.target.value)}>{villages.map((v) => <option key={v.id} value={v.id}>{v.name} · {v.district} · {v.level}</option>)}</select></label>
+      {selectedVillage && <div className="relocation-context"><b>{selectedVillage.district}, {selectedVillage.state}</b><span>Population {selectedVillage.population.toLocaleString()} · Risk {selectedVillage.risk_score}</span></div>}
+      {error && <div className="relocation-error">{error}</div>}
+      {plan && <RelocationBox plan={plan} onViewRoute={handleViewRoute} />}
+      {routeLoading && <div className="panel route-status">Generating route…</div>}
+      {route && <div className="panel route-card"><span className="eyebrow">ROUTE GENERATED</span><h3>{route.from.name} → {route.to.name}</h3><div className="route-metrics"><span><b>{route.distance_km} km</b><small>distance</small></span><span><b>SAFE SITE</b><small>destination</small></span></div><p>{route.note}</p></div>}
+      {plan && plan.ranked_sites.length > 0 && <div className="panel ranking-panel"><h4>SITE SUITABILITY · BEST FIRST</h4>{plan.ranked_sites.map((s, i) => <div className="ranking-row" key={s.site_id}><div><strong>{i + 1}. {s.site_name}</strong><small>{s.distance_km} km · {s.road_access} access · {s.available_capacity.toLocaleString()} free</small></div><b>{s.suitability}/100</b></div>)}</div>}
     </div>
-  );
+  </div>;
 }
