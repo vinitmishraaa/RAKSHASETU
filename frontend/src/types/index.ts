@@ -5,9 +5,14 @@ export interface Village {
   name: string;
   district: string;
   state: string;
+  region?: string;
   lat: number;
   lng: number;
   population: number;
+  households?: number;
+  children?: number;
+  elderly?: number;
+  other_vulnerable?: number;
   risk_score: number;
   hazard: number;
   exposure: number;
@@ -35,6 +40,7 @@ export interface VillageDetail extends Village {
 export interface SafeSite {
   id: string;
   name: string;
+  region?: string;
   lat: number;
   lng: number;
   capacity: number;
