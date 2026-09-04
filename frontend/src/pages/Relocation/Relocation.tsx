@@ -4,38 +4,18 @@ import RiskMap from "../../components/map/RiskMap";
 import RelocationBox from "../../components/relocation/RelocationBox";
 import { api } from "../../services/api";
 import type { Village, SafeSite, RelocationPlan } from "../../types";
+import "./relocation.css";
 
 export default function Relocation() {
   const [searchParams, setSearchParams] = useSearchParams();
-  const [villages, setVillages] = useState<Village[]>([]);
-  const [sites, setSites] = useState<SafeSite[]>([]);
-  const [villageId, setVillageId] = useState(searchParams.get("village") || "");
-  const [plan, setPlan] = useState<RelocationPlan | null>(null);
-  const [route, setRoute] = useState<any>(null);
-  const [routeLoading, setRouteLoading] = useState(false);
-  const [error, setError] = useState("");
-
-  useEffect(() => {
-    Promise.all([api.villages.list(), api.safeSites.list()]).then(([v, s]) => { setVillages(v); setSites(s); if (!villageId && v.length) setVillageId(v[0].id); }).catch(() => setError("Could not load relocation data."));
-  }, []);
-
-  useEffect(() => {
-    if (!villageId) return;
-    setSearchParams({ village: villageId }); setRoute(null); setError("");
-    api.relocation.plan(villageId).then(setPlan).catch(() => setError("Could not generate a relocation recommendation."));
-  }, [villageId, setSearchParams]);
-
+  const [villages, setVillages] = useState<Village[]>([]); const [sites, setSites] = useState<SafeSite[]>([]);
+  const [villageId, setVillageId] = useState(searchParams.get("village") || ""); const [plan, setPlan] = useState<RelocationPlan | null>(null);
+  const [route, setRoute] = useState<any>(null); const [routeLoading, setRouteLoading] = useState(false); const [error, setError] = useState("");
+  useEffect(() => { Promise.all([api.villages.list(), api.safeSites.list()]).then(([v, s]) => { setVillages(v); setSites(s); if (!villageId && v.length) setVillageId(v[0].id); }).catch(() => setError("Could not load relocation data.")); }, []);
+  useEffect(() => { if (!villageId) return; setSearchParams({ village: villageId }); setRoute(null); setError(""); api.relocation.plan(villageId).then(setPlan).catch(() => setError("Could not generate a relocation recommendation.")); }, [villageId, setSearchParams]);
   const selectedVillage = villages.find((v) => v.id === villageId);
   const regionalSites = selectedVillage ? sites.filter((s) => !s.region || s.region === selectedVillage.state) : sites;
-
-  async function handleViewRoute(siteId: string) {
-    if (!villageId) return;
-    setRouteLoading(true); setError("");
-    try { setRoute(await api.relocation.route(villageId, siteId)); }
-    catch { setError("Route could not be generated. Try another safe site."); }
-    finally { setRouteLoading(false); }
-  }
-
+  async function handleViewRoute(siteId: string) { if (!villageId) return; setRouteLoading(true); setError(""); try { setRoute(await api.relocation.route(villageId, siteId)); } catch { setError("Route could not be generated. Try another safe site."); } finally { setRouteLoading(false); } }
   return <div className="relocation-command">
     <div className="relocation-map"><RiskMap villages={selectedVillage ? [selectedVillage] : villages} safeSites={regionalSites} selectedId={villageId} route={route?.path} center={selectedVillage ? [selectedVillage.lat, selectedVillage.lng] : undefined} /></div>
     <div className="relocation-panel">
