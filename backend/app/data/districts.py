@@ -15,7 +15,8 @@ DISTRICTS = {
         "Darjeeling", "Hooghly", "Howrah", "Jalpaiguri", "Jhargram",
         "Kalimpong", "Kolkata", "Maldah", "Murshidabad", "Nadia",
         "North 24 Parganas", "South 24 Parganas", "Paschim Bardhaman",
-        "Paschim Medinipur", "Purba Bardhaman", "Purba Medinipur", "Uttar Dinajpur",
+        "Paschim Medinipur", "Purba Bardhaman", "Purba Medinipur", "Purulia",
+        "Uttar Dinajpur",
     ],
     "Bihar": [
         "Araria", "Arwal", "Aurangabad", "Banka", "Begusarai", "Bhagalpur",
