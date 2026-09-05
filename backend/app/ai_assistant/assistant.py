@@ -1,4 +1,4 @@
-"""Grounded RakshaSetu AI assistant."""
+"""Grounded RakshaSetu AI assistant with selectable providers."""
 from app.core.config import get_settings
 from app.data import synthetic
 from app.risk_engine.scoring import compute_risk
@@ -26,13 +26,6 @@ def _build_context() -> str:
     return "\n".join(lines)
 
 
-def _best_village():
-    rows = []
-    for v in synthetic.get_villages():
-        ind = compute_risk(v); rows.append((v, ind, classify(ind["risk_score"])))
-    return max(rows, key=lambda x: x[1]["risk_score"]) if rows else None
-
-
 def _template_answer(question: str) -> str:
     q = question.lower()
     rows = []
@@ -48,8 +41,7 @@ def _template_answer(question: str) -> str:
         high = [r for r in rows if r[2]["level"] == "HIGH"]
         return f"Current risk situation: {len(critical)} critical and {len(high)} high-risk monitored locations. Review the Alerts and Dashboard views before issuing response orders."
     if "safe site" in q or "relocat" in q:
-        name = next((v["name"] for v, _, _ in rows if v["name"].lower() in q), rows[0][0]["name"])
-        v = next(v for v, _, _ in rows if v["name"] == name)
+        v, ind, cls = max(rows, key=lambda x: x[1]["risk_score"])
         plan = build_relocation_plan(v, synthetic.get_safe_sites())
         best = plan.get("best_site")
         if best:
@@ -61,13 +53,35 @@ def _template_answer(question: str) -> str:
 async def ask(question: str) -> dict:
     settings = get_settings()
     context = _build_context()
-    if not settings.ANTHROPIC_API_KEY:
-        return {"answer": _template_answer(question), "grounded": True, "used_llm": False}
+    provider = (settings.AI_PROVIDER or "openai").lower()
     try:
-        import anthropic
-        client = anthropic.Anthropic(api_key=settings.ANTHROPIC_API_KEY)
-        message = client.messages.create(model="claude-sonnet-4-6", max_tokens=500, system=SYSTEM_PROMPT, messages=[{"role": "user", "content": f"CONTEXT DATA:\n{context}\n\nQUESTION: {question}"}])
-        text = "".join(block.text for block in message.content if getattr(block, "type", "") == "text")
-        return {"answer": text, "grounded": True, "used_llm": True}
+        if provider == "openai" and settings.OPENAI_API_KEY:
+            from openai import OpenAI
+            client = OpenAI(api_key=settings.OPENAI_API_KEY)
+            response = client.responses.create(
+                model=settings.OPENAI_MODEL,
+                instructions=SYSTEM_PROMPT,
+                input=f"CONTEXT DATA:\n{context}\n\nQUESTION: {question}",
+                max_output_tokens=500,
+            )
+            return {"answer": response.output_text, "grounded": True, "used_llm": True, "provider": "openai"}
+
+        if provider == "google" and settings.GOOGLE_API_KEY:
+            from google import genai
+            client = genai.Client(api_key=settings.GOOGLE_API_KEY)
+            response = client.models.generate_content(
+                model=settings.GOOGLE_MODEL,
+                contents=f"{SYSTEM_PROMPT}\n\nCONTEXT DATA:\n{context}\n\nQUESTION: {question}",
+            )
+            return {"answer": response.text or _template_answer(question), "grounded": True, "used_llm": True, "provider": "google"}
+
+        if provider == "anthropic" and settings.ANTHROPIC_API_KEY:
+            import anthropic
+            client = anthropic.Anthropic(api_key=settings.ANTHROPIC_API_KEY)
+            message = client.messages.create(model=settings.ANTHROPIC_MODEL, max_tokens=500, system=SYSTEM_PROMPT, messages=[{"role": "user", "content": f"CONTEXT DATA:\n{context}\n\nQUESTION: {question}"}])
+            text = "".join(block.text for block in message.content if getattr(block, "type", "") == "text")
+            return {"answer": text, "grounded": True, "used_llm": True, "provider": "anthropic"}
     except Exception:
-        return {"answer": _template_answer(question), "grounded": True, "used_llm": False}
+        pass
+
+    return {"answer": _template_answer(question), "grounded": True, "used_llm": False, "provider": "fallback"}
