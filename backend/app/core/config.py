@@ -1,40 +1,30 @@
-"""
-Central configuration for RakshaSetu backend.
+"""Central configuration for RakshaSetu backend.
 
-All external API keys are OPTIONAL. The prototype runs entirely on
-synthetic data and free/open map tiles (OpenStreetMap) with no keys
-at all. Add keys to backend/.env only if you want to switch on the
-corresponding real integration.
+External integrations are optional. The prototype works with synthetic data
+and OpenStreetMap tiles without map credentials.
 """
-from pydantic_settings import BaseSettings
 from functools import lru_cache
+from pydantic_settings import BaseSettings
 
 
 class Settings(BaseSettings):
-    # --- App ---
     APP_NAME: str = "RakshaSetu API"
     ENV: str = "development"
     CORS_ORIGINS: str = "http://localhost:5173,http://127.0.0.1:5173"
 
-    # --- Database (optional; unset = use in-memory synthetic data) ---
-    # If you stand up a real Postgres+PostGIS instance, set this and
-    # switch app/data/synthetic.py calls over to real repositories.
     DATABASE_URL: str | None = None
-
-    # --- Weather / Rainfall (optional) ---
-    # OpenWeatherMap: https://openweathermap.org/api  (free tier available)
     OPENWEATHER_API_KEY: str | None = None
 
-    # --- AI Assistant (optional) ---
-    # Anthropic API key. Without it, /api/assistant falls back to a
-    # deterministic templated explanation using the same underlying data.
+    # AI provider: openai, google, or anthropic.
+    AI_PROVIDER: str = "openai"
+    OPENAI_API_KEY: str | None = None
+    OPENAI_MODEL: str = "gpt-4o-mini"
+    GOOGLE_API_KEY: str | None = None
+    GOOGLE_MODEL: str = "gemini-2.5-flash"
     ANTHROPIC_API_KEY: str | None = None
+    ANTHROPIC_MODEL: str = "claude-sonnet-4-6"
 
-    # --- Map tiles (optional, only needed for prettier vector tiles) ---
-    # Mapbox: https://www.mapbox.com/  (free monthly allowance)
     MAPBOX_TOKEN: str | None = None
-
-    # --- Notifications (optional, not wired up in the prototype) ---
     SMS_API_KEY: str | None = None
     SMS_API_SECRET: str | None = None
 
