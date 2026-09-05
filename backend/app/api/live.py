@@ -8,6 +8,7 @@ import io
 import httpx
 from fastapi import APIRouter, Query
 from app.core.config import get_settings
+from app.data import synthetic
 
 router = APIRouter(prefix="/api/live", tags=["live"])
 REGION_BBOXES={"India":(6.0,37.2,68.0,97.5),"West Bengal":(21.4,27.3,85.8,89.9),"Bihar":(24.0,27.6,83.2,88.4),"Sikkim":(27.0,28.2,88.0,88.9),"Odisha":(17.7,22.8,81.3,87.6)}
@@ -21,6 +22,11 @@ def fire_severity(frp:float)->str:
     if frp>=8:return "MODERATE"
     return "LOW"
 
+def nearest_named_area(lat:float,lng:float):
+    villages=synthetic.get_villages()
+    if not villages:return None
+    return min(villages,key=lambda v:(v["lat"]-lat)**2+(v["lng"]-lng)**2)
+
 async def fetch_firms(client:httpx.AsyncClient,key:str,source:str,bbox:tuple[float,float,float,float]):
     south,north,west,east=bbox; area=f"{west},{south},{east},{north}"
     url=f"https://firms.modaps.eosdis.nasa.gov/api/area/csv/{key}/{source}/{area}/1"
@@ -29,8 +35,10 @@ async def fetch_firms(client:httpx.AsyncClient,key:str,source:str,bbox:tuple[flo
         try:
             lat=float(row.get("latitude","")); lng=float(row.get("longitude","")); frp=float(row.get("frp") or 0)
         except (TypeError,ValueError): continue
-        exact=f"{lat:.5f}°, {lng:.5f}°"
-        records.append({"id":f"fire-{source}-{row.get('acq_date')}-{row.get('acq_time')}-{lat}-{lng}","type":"Fire Hotspot","title":f"Active fire hotspot · {exact}","lat":lat,"lng":lng,"frp":frp,"confidence":row.get("confidence"),"time":f"{row.get('acq_date','')} {row.get('acq_time','')}","severity":fire_severity(frp),"source":f"NASA FIRMS · {source}","detail":f"Exact location {exact} · FRP {frp:.1f} MW · confidence {row.get('confidence') or 'n/a'} · satellite {row.get('satellite') or source}","url":"https://firms.modaps.eosdis.nasa.gov/"})
+        nearby=nearest_named_area(lat,lng)
+        place=f"Near {nearby['name']}" if nearby else "Selected region"
+        area_name=f"{nearby['district']}, {nearby['state']}" if nearby else "Selected region"
+        records.append({"id":f"fire-{source}-{row.get('acq_date')}-{row.get('acq_time')}-{lat}-{lng'},"type":"Fire Hotspot","title":place,"location_name":place,"lat":lat,"lng":lng,"frp":frp,"confidence":row.get("confidence"),"time":f"{row.get('acq_date','')} {row.get('acq_time','')}","severity":fire_severity(frp),"source":f"NASA FIRMS · {source}","detail":f"{place} · {area_name} · FRP {frp:.1f} MW · confidence {row.get('confidence') or 'n/a'} · satellite {row.get('satellite') or source}","url":"https://firms.modaps.eosdis.nasa.gov/"})
     return records
 
 @router.get("/hazards")
@@ -43,7 +51,7 @@ async def live_hazards(region:str|None=Query(default=None)):
                 props=feature.get("properties") or {}; coords=(feature.get("geometry") or {}).get("coordinates") or [None,None,None]
                 if coords[0] is None or coords[1] is None or not in_bbox(float(coords[1]),float(coords[0]),bbox): continue
                 mag=float(props.get("mag") or 0); severity="CRITICAL" if mag>=6 else "HIGH" if mag>=4.5 else "MODERATE" if mag>=3 else "LOW"
-                items.append({"id":feature.get("id"),"type":"Earthquake","title":props.get("title"),"lat":float(coords[1]),"lng":float(coords[0]),"magnitude":mag,"time":props.get("time"),"severity":severity,"source":"USGS","detail":f"Exact location {float(coords[1]):.5f}°, {float(coords[0]):.5f}° · magnitude {mag:.1f} · depth {float(coords[2] or 0):.1f} km","url":props.get("url")})
+                items.append({"id":feature.get("id"),"type":"Earthquake","title":props.get("title"),"lat":float(coords[1]),"lng":float(coords[0]),"magnitude":mag,"time":props.get("time"),"severity":severity,"source":"USGS","detail":f"{props.get('place') or 'Earthquake event'} · magnitude {mag:.1f} · depth {float(coords[2] or 0):.1f} km","url":props.get("url")})
             sources.append({"name":"USGS Earthquake Feed","status":"live","count":len([x for x in items if x["type"]=="Earthquake"])})
         except Exception as exc: sources.append({"name":"USGS Earthquake Feed","status":f"unavailable: {str(exc)[:100]}"})
         if settings.FIRMS_API_KEY:
