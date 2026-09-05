@@ -1,62 +1,10 @@
 import { useEffect, useMemo, useState } from "react";
 import { api } from "../../services/api";
 import type { SafeSite } from "../../types";
-
-const REGIONS = ["All regions", "West Bengal", "Bihar", "Odisha", "Jharkhand", "Sikkim", "Nepal"];
-
-export default function SafeSites() {
-  const [sites, setSites] = useState<SafeSite[]>([]);
-  const [region, setRegion] = useState("All regions");
-
-  useEffect(() => { api.safeSites.list().then(setSites); }, []);
-
-  const visibleSites = useMemo(() => region === "All regions" ? sites : sites.filter((s) => (s as SafeSite & { region?: string }).region === region), [sites, region]);
-  const totalCapacity = visibleSites.reduce((sum, s) => sum + s.capacity, 0);
-  const availableCapacity = visibleSites.reduce((sum, s) => sum + s.available_capacity, 0);
-
-  return (
-    <div className="scrollable" style={{ padding: 24, flex: 1 }}>
-      <div style={{ display: "flex", justifyContent: "space-between", gap: 16, alignItems: "flex-start", marginBottom: 20 }}>
-        <div>
-          <h2 style={{ fontSize: 20, marginBottom: 4 }}>Safe Sites</h2>
-          <p>Regional emergency shelters ranked for safety, capacity, access and suitability.</p>
-        </div>
-        <select value={region} onChange={(e) => setRegion(e.target.value)} className="filter-select" aria-label="Filter safe sites by region">
-          {REGIONS.map((r) => <option key={r}>{r}</option>)}
-        </select>
-      </div>
-
-      <div className="kpi-grid" style={{ marginBottom: 16 }}>
-        <div className="panel kpi-card"><span>SAFE SITES</span><strong>{visibleSites.length}</strong></div>
-        <div className="panel kpi-card"><span>TOTAL CAPACITY</span><strong>{totalCapacity.toLocaleString()}</strong></div>
-        <div className="panel kpi-card"><span>AVAILABLE CAPACITY</span><strong>{availableCapacity.toLocaleString()}</strong></div>
-      </div>
-
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: 16 }}>
-        {visibleSites.map((s) => {
-          const occupancyPct = s.capacity ? Math.min(100, Math.round((s.current_occupancy / s.capacity) * 100)) : 0;
-          const siteRegion = (s as SafeSite & { region?: string }).region || "Regional";
-          return (
-            <div key={s.id} className="panel" style={{ padding: 20 }}>
-              <div style={{ display: "flex", justifyContent: "space-between", gap: 10 }}>
-                <div><h3 style={{ fontSize: 15, marginBottom: 2 }}>{s.name}</h3><div className="mono" style={{ fontSize: 11, color: "var(--text-muted)" }}>{siteRegion} · {s.id}</div></div>
-                <span className="status-pill status-safe">SAFE</span>
-              </div>
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, margin: "18px 0 16px" }}>
-                <Field label="Capacity" value={s.capacity.toLocaleString()} /><Field label="Available" value={s.available_capacity.toLocaleString()} />
-                <Field label="Hazard risk" value={`${s.hazard_risk}/100`} /><Field label="Infrastructure" value={`${s.infrastructure_score}/100`} />
-              </div>
-              <div style={{ marginBottom: 16 }}><div style={{ display: "flex", justifyContent: "space-between", fontSize: 11, marginBottom: 5 }}><span style={{ color: "var(--text-muted)" }}>Occupancy</span><span className="mono">{occupancyPct}%</span></div><div style={{ height: 7, background: "var(--bg-inset)", borderRadius: 4, overflow: "hidden" }}><div style={{ width: `${occupancyPct}%`, height: "100%", background: occupancyPct > 80 ? "var(--risk-high)" : "var(--info)" }} /></div></div>
-              <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>{s.facilities.map((f) => <span key={f} className="tag">{f}</span>)}</div>
-            </div>
-          );
-        })}
-      </div>
-      {visibleSites.length === 0 && <div className="panel" style={{ padding: 24, marginTop: 16 }}>No safe sites are available for this region.</div>}
-    </div>
-  );
-}
-
-function Field({ label, value }: { label: string; value: string }) {
-  return <div><div style={{ fontSize: 10.5, color: "var(--text-muted)" }}>{label}</div><div className="mono" style={{ fontSize: 14, fontWeight: 700 }}>{value}</div></div>;
+const REGIONS=["All regions","West Bengal","Bihar","Sikkim","Odisha"];
+export default function SafeSites(){
+ const [sites,setSites]=useState<SafeSite[]>([]);const [region,setRegion]=useState(()=>localStorage.getItem("rakshasetu_region")||"All regions");
+ useEffect(()=>{api.safeSites.list().then(setSites)},[]);
+ const visibleSites=useMemo(()=>region==="All regions"?sites:sites.filter(s=>s.region===region),[sites,region]);const totalCapacity=visibleSites.reduce((n,s)=>n+s.capacity,0);const availableCapacity=visibleSites.reduce((n,s)=>n+s.available_capacity,0);
+ return <div className="page-shell"><div className="page-hero"><div><span className="eyebrow">EVACUATION INFRASTRUCTURE</span><h2>Safe Sites</h2><p>Capacity, occupancy, infrastructure and hazard exposure for the selected region.</p></div><select value={region} onChange={e=>{setRegion(e.target.value);if(e.target.value!=="All regions")localStorage.setItem("rakshasetu_region",e.target.value)}}>{REGIONS.map(r=><option key={r}>{r}</option>)}</select></div><div className="alert-summary-strip"><span><b>{visibleSites.length}</b><small>safe sites</small></span><span><b>{totalCapacity.toLocaleString()}</b><small>total capacity</small></span><span><b>{availableCapacity.toLocaleString()}</b><small>available now</small></span><span><b>{totalCapacity?Math.round((availableCapacity/totalCapacity)*100):0}%</b><small>free capacity</small></span></div><div className="safe-site-page-grid">{visibleSites.map(s=>{const occupancyPct=s.capacity?Math.min(100,Math.round(s.current_occupancy/s.capacity*100)):0;return <article className="safe-site-detail-card" key={s.id}><div className="safe-site-detail-head"><div><span className="safe-pill">SAFE SITE</span><h3>{s.name}</h3><small>{s.region} · {s.lat.toFixed(4)}, {s.lng.toFixed(4)}</small></div><strong>{s.available_capacity.toLocaleString()}<small> available</small></strong></div><div className="safe-metric-grid"><span><small>Capacity</small><b>{s.capacity.toLocaleString()}</b></span><span><small>Occupancy</small><b>{occupancyPct}%</b></span><span><small>Hazard risk</small><b>{s.hazard_risk}/100</b></span><span><small>Infrastructure</small><b>{s.infrastructure_score}/100</b></span></div><div className="safe-occupancy"><div><small>Current occupancy</small><b>{s.current_occupancy.toLocaleString()} / {s.capacity.toLocaleString()}</b></div><i><em style={{width:`${occupancyPct}%`}}/></i></div><div className="safe-facilities">{s.facilities.map(f=><span key={f}>{f}</span>)}</div></article>})}{!visibleSites.length&&<div className="panel empty-state">No safe sites available for {region}.</div>}</div></div>;
 }
