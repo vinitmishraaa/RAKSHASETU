@@ -1,7 +1,10 @@
 interface FilterBarProps {
-  regions: string[];
-  region: string;
-  setRegion: (v: string) => void;
+  countries: string[];
+  country: string;
+  setCountry: (v: string) => void;
+  states: string[];
+  state: string;
+  setState: (v: string) => void;
   districts: string[];
   district: string;
   setDistrict: (v: string) => void;
@@ -11,11 +14,11 @@ interface FilterBarProps {
 
 const LEVELS = ["CRITICAL", "HIGH", "MODERATE", "LOW"];
 
-function Select({ label, value, onChange, options }: { label: string; value: string; onChange: (v: string) => void; options: string[] }) {
+function Select({ label, value, onChange, options, disabled = false }: { label: string; value: string; onChange: (v: string) => void; options: string[]; disabled?: boolean }) {
   return (
     <label className="filter-field">
       <span>{label}</span>
-      <select value={value} onChange={(e) => onChange(e.target.value)}>
+      <select value={value} disabled={disabled} onChange={(e) => onChange(e.target.value)}>
         <option value="">All</option>
         {options.map((o) => <option key={o} value={o}>{o}</option>)}
       </select>
@@ -23,15 +26,16 @@ function Select({ label, value, onChange, options }: { label: string; value: str
   );
 }
 
-export default function FilterBar({ regions, region, setRegion, districts, district, setDistrict, level, setLevel }: FilterBarProps) {
+export default function FilterBar({ countries, country, setCountry, states, state, setState, districts, district, setDistrict, level, setLevel }: FilterBarProps) {
   return (
     <div className="filter-bar">
-      <div className="filter-title"><span className="eyebrow">FILTERS</span><strong>Regional Scope</strong></div>
-      <Select label="Region / State" value={region} onChange={setRegion} options={regions} />
-      <Select label="District" value={district} onChange={setDistrict} options={districts} />
+      <div className="filter-title"><span className="eyebrow">GEOGRAPHIC SCOPE</span><strong>Country → State → District</strong></div>
+      <Select label="Country" value={country} onChange={setCountry} options={countries} />
+      <Select label="State / Province" value={state} onChange={setState} options={states} disabled={!country} />
+      <Select label="District" value={district} onChange={setDistrict} options={districts} disabled={!state} />
       <Select label="Risk Level" value={level} onChange={setLevel} options={LEVELS} />
-      {(region || district || level) && (
-        <button className="filter-clear" onClick={() => { setRegion(""); setDistrict(""); setLevel(""); }}>Clear filters</button>
+      {(country || state || district || level) && (
+        <button className="filter-clear" onClick={() => { setCountry(""); setState(""); setDistrict(""); setLevel(""); }}>Clear filters</button>
       )}
     </div>
   );
