@@ -7,50 +7,43 @@ from app.optimization.relocation import build_relocation_plan
 router = APIRouter(prefix="/api/alerts", tags=["alerts"])
 
 
+def make_alert(village, level, score, message, action, source="RakshaSetu risk engine"):
+    return {
+        "village_id": village["id"],
+        "village_name": village["name"],
+        "district": village.get("district"),
+        "state": village.get("state"),
+        "lat": village.get("lat"),
+        "lng": village.get("lng"),
+        "population": village.get("population"),
+        "level": level,
+        "risk_score": score,
+        "message": message,
+        "action": action,
+        "source": source,
+    }
+
+
 @router.get("")
 def list_alerts():
     alerts = []
     sites = synthetic.get_safe_sites()
-
     for village in synthetic.get_villages():
         indicators = compute_risk(village)
         cls = classify(indicators["risk_score"])
+        score = indicators["risk_score"]
+        location = f"{village['name']}, {village.get('district', '')}, {village.get('state', '')}"
 
         if cls["level"] == "CRITICAL":
-            alerts.append(
-                {
-                    "village_id": village["id"],
-                    "village_name": village["name"],
-                    "level": "CRITICAL",
-                    "risk_score": indicators["risk_score"],
-                    "message": f"{village['name']} has entered CRITICAL risk category. "
-                               f"Immediate relocation assessment recommended.",
-                }
-            )
+            alerts.append(make_alert(village, "CRITICAL", score, f"{location} has entered CRITICAL risk category. Immediate relocation assessment recommended.", "Assess relocation now"))
         elif cls["level"] == "HIGH":
-            alerts.append(
-                {
-                    "village_id": village["id"],
-                    "village_name": village["name"],
-                    "level": "HIGH",
-                    "risk_score": indicators["risk_score"],
-                    "message": f"{village['name']} is at HIGH risk. Priority monitoring advised.",
-                }
-            )
+            alerts.append(make_alert(village, "HIGH", score, f"{location} is at HIGH risk. Priority monitoring and readiness advised.", "Increase field monitoring"))
 
         plan = build_relocation_plan(village, sites)
         if not plan["fully_covered"] and cls["level"] in ("CRITICAL", "HIGH"):
-            alerts.append(
-                {
-                    "village_id": village["id"],
-                    "village_name": village["name"],
-                    "level": "WARNING",
-                    "risk_score": indicators["risk_score"],
-                    "message": f"Capacity warning: available safe sites cannot fully "
-                               f"absorb {village['name']}'s population in one location.",
-                }
-            )
+            alerts.append(make_alert(village, "WARNING", score, f"{location}: available safe-site capacity cannot fully absorb the population in one location.", "Split allocation across safe sites", "Relocation capacity engine"))
 
+    alerts.sort(key=lambda a: (a["level"] != "CRITICAL", a["level"] != "HIGH", -a["risk_score"]))
     return alerts
 
 
