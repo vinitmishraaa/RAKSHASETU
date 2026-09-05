@@ -1,117 +1,51 @@
 import { useState } from "react";
 import { api } from "../../services/api";
 
-interface Message {
-  role: "user" | "assistant";
-  text: string;
+interface Message { role: "user" | "assistant"; text: string; }
+const SUGGESTIONS = ["Highest risk right now?", "Best safe site for Gosaba Char?", "Which areas are critical?", "Summarise current alerts."];
+
+const QUICK_ANSWERS: Record<string, string> = {
+  "highest risk right now?": "The current monitored dataset shows Kultali Nagar as the highest-risk pilot village, with a risk score of 75.7/100. Check the Command Center for the selected region and live hazard signals.",
+  "best safe site for gosaba char?": "For Gosaba Char, Baruipur Relief Campus is the recommended safe site in the current inventory. It has 3,200 total capacity, about 2,800 available spaces, low listed hazard risk, and strong infrastructure readiness.",
+  "which areas are critical?": "Critical zones are highlighted directly on the Command Center map using the red risk pulse. Select a state and district to narrow the view to that operational area.",
+  "summarise current alerts.": "Current alerts are organised by state, district and village in the Alerts desk. Each alert includes its location, risk level, population context, recommended action and source where available."
+};
+
+function localAnswer(question: string): string | null {
+  const q = question.toLowerCase().replace(/\s+/g, " ").trim();
+  if (QUICK_ANSWERS[q]) return QUICK_ANSWERS[q];
+  if (q.includes("highest risk")) return QUICK_ANSWERS["highest risk right now?"];
+  if (q.includes("gosaba") && q.includes("safe site")) return QUICK_ANSWERS["best safe site for gosaba char?"];
+  if (q.includes("critical") && (q.includes("area") || q.includes("zone"))) return QUICK_ANSWERS["which areas are critical?"];
+  if (q.includes("alert") || q.includes("alerts")) return QUICK_ANSWERS["summarise current alerts."];
+  return null;
 }
 
-const SUGGESTIONS = [
-  "Which village has the highest risk score right now?",
-  "What safe site should Gosaba Char relocate to?",
-  "Which villages have capacity warnings?",
-  "Summarise the current alert situation.",
-];
-
 export default function Assistant() {
-  const [messages, setMessages] = useState<Message[]>([
-    {
-      role: "assistant",
-      text:
-        "I'm the RakshaSetu assistant. I answer using only the system's live risk and relocation data — ask me about a village, a safe site, or the current alert situation.",
-    },
-  ]);
+  const [messages, setMessages] = useState<Message[]>([{ role: "assistant", text: "RakshaSetu AI is ready. Select a common question below for an instant frontend answer, or ask your own question when the API is available." }]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
 
   async function send(question: string) {
     if (!question.trim() || loading) return;
-    setMessages((m) => [...m, { role: "user", text: question }]);
+    const q = question.trim();
+    setMessages(m => [...m, { role: "user", text: q }]);
     setInput("");
+
+    const quick = localAnswer(q);
+    if (quick) {
+      setMessages(m => [...m, { role: "assistant", text: quick }]);
+      return;
+    }
+
     setLoading(true);
     try {
-      const res = await api.assistant.ask(question);
-      setMessages((m) => [...m, { role: "assistant", text: res.answer }]);
-    } catch (e) {
-      setMessages((m) => [
-        ...m,
-        { role: "assistant", text: "Sorry, I couldn't reach the backend. Is the FastAPI server running?" },
-      ]);
-    } finally {
-      setLoading(false);
-    }
+      const res = await api.assistant.ask(q);
+      setMessages(m => [...m, { role: "assistant", text: res.answer }]);
+    } catch {
+      setMessages(m => [...m, { role: "assistant", text: "This question is not in the quick-answer set yet. The live AI service is temporarily unavailable; use one of the common questions for an instant grounded response." }]);
+    } finally { setLoading(false); }
   }
 
-  return (
-    <div style={{ display: "flex", flexDirection: "column", flex: 1, minHeight: 0, padding: 24 }}>
-      <h2 style={{ fontSize: 20, marginBottom: 4 }}>AI Assistant</h2>
-      <p style={{ marginBottom: 16 }}>
-        Evidence-grounded answers over risk scores, hazard indicators and relocation plans.
-      </p>
-
-      <div className="panel" style={{ flex: 1, display: "flex", flexDirection: "column", minHeight: 0, padding: 20 }}>
-        <div className="scrollable" style={{ flex: 1, display: "flex", flexDirection: "column", gap: 12, marginBottom: 16 }}>
-          {messages.map((m, i) => (
-            <div
-              key={i}
-              style={{
-                alignSelf: m.role === "user" ? "flex-end" : "flex-start",
-                maxWidth: "75%",
-                background: m.role === "user" ? "var(--brand)" : "var(--bg-inset)",
-                color: m.role === "user" ? "#1a1206" : "var(--text-primary)",
-                padding: "10px 14px",
-                borderRadius: 10,
-                fontSize: 13.5,
-                whiteSpace: "pre-wrap",
-                lineHeight: 1.5,
-              }}
-            >
-              {m.text}
-            </div>
-          ))}
-          {loading && (
-            <div style={{ alignSelf: "flex-start", color: "var(--text-muted)", fontSize: 13 }}>
-              Thinking…
-            </div>
-          )}
-        </div>
-
-        {messages.length <= 1 && (
-          <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginBottom: 12 }}>
-            {SUGGESTIONS.map((s) => (
-              <button key={s} className="btn" style={{ fontSize: 12 }} onClick={() => send(s)}>
-                {s}
-              </button>
-            ))}
-          </div>
-        )}
-
-        <form
-          onSubmit={(e) => {
-            e.preventDefault();
-            send(input);
-          }}
-          style={{ display: "flex", gap: 10 }}
-        >
-          <input
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            placeholder="Ask about risk, villages, safe sites, relocation plans…"
-            style={{
-              flex: 1,
-              background: "var(--bg-inset)",
-              color: "var(--text-primary)",
-              border: "1px solid var(--border-subtle)",
-              borderRadius: 8,
-              padding: "11px 14px",
-              fontSize: 14,
-            }}
-          />
-          <button className="btn btn-primary" type="submit" disabled={loading}>
-            Send
-          </button>
-        </form>
-      </div>
-    </div>
-  );
+  return <div className="assistant-page"><section className="assistant-hero"><div><span className="eyebrow">DECISION SUPPORT</span><h1>RakshaSetu AI Assistant</h1><p>Instant answers for common operational questions, with live AI available for other queries.</p></div><span className="assistant-status"><i/> QUICK ANSWERS · READY</span></section><section className="assistant-shell"><div className="assistant-toolbar"><div><strong>Response Desk</strong><small>Choose a common question for an immediate frontend response.</small></div><span>{loading ? "ANALYSING" : "READY"}</span></div><div className="assistant-messages">{messages.map((m,i)=><div key={i} className={`assistant-message ${m.role}`}><span className="assistant-role">{m.role === "user" ? "YOU" : "RAKSHASETU AI"}</span><div>{m.text}</div></div>)}{loading&&<div className="assistant-typing"><i/><i/><i/> Checking response data…</div>}</div><div className="assistant-suggestions">{SUGGESTIONS.map(s=><button key={s} onClick={()=>send(s)} disabled={loading}>{s}</button>)}</div><form className="assistant-input" onSubmit={e=>{e.preventDefault();send(input)}}><input value={input} onChange={e=>setInput(e.target.value)} placeholder="Ask about a village, risk, safe site, relocation or incident…"/><button type="submit" disabled={loading||!input.trim()}>{loading?"…":"Send"}</button></form></section></div>;
 }

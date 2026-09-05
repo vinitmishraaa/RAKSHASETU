@@ -1,120 +1,16 @@
-import { useEffect, useState } from "react";
+import { useEffect,useMemo,useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import RiskMap from "../../components/map/RiskMap";
 import RelocationBox from "../../components/relocation/RelocationBox";
 import { api } from "../../services/api";
-import type { Village, SafeSite, RelocationPlan } from "../../types";
-
-export default function Relocation() {
-  const [searchParams, setSearchParams] = useSearchParams();
-  const [villages, setVillages] = useState<Village[]>([]);
-  const [sites, setSites] = useState<SafeSite[]>([]);
-  const [villageId, setVillageId] = useState(searchParams.get("village") || "");
-  const [plan, setPlan] = useState<RelocationPlan | null>(null);
-  const [route, setRoute] = useState<any>(null);
-
-  useEffect(() => {
-    Promise.all([api.villages.list(), api.safeSites.list()]).then(([v, s]) => {
-      setVillages(v);
-      setSites(s);
-      if (!villageId && v.length) setVillageId(v[0].id);
-    });
-  }, []);
-
-  useEffect(() => {
-    if (!villageId) return;
-    setSearchParams({ village: villageId });
-    api.relocation.plan(villageId).then(setPlan);
-    setRoute(null);
-  }, [villageId]);
-
-  const selectedVillage = villages.find((v) => v.id === villageId);
-
-  async function handleViewRoute(siteId: string) {
-    if (!villageId) return;
-    const r = await api.relocation.route(villageId, siteId);
-    setRoute(r);
-  }
-
-  return (
-    <div style={{ display: "flex", flex: 1, minHeight: 0 }}>
-      <div style={{ flex: 2, position: "relative", borderRight: "1px solid var(--border-subtle)" }}>
-        <RiskMap
-          villages={selectedVillage ? [selectedVillage] : villages}
-          safeSites={sites}
-          selectedId={villageId}
-          center={selectedVillage ? [selectedVillage.lat, selectedVillage.lng] : undefined}
-        />
-      </div>
-
-      <div style={{ flex: 1, minWidth: 340, maxWidth: 420, padding: 20, overflowY: "auto" }}>
-        <label style={{ display: "block", marginBottom: 16 }}>
-          <span style={{ fontSize: 12, color: "var(--text-muted)", fontWeight: 600 }}>VILLAGE</span>
-          <select
-            value={villageId}
-            onChange={(e) => setVillageId(e.target.value)}
-            style={{
-              display: "block",
-              marginTop: 6,
-              width: "100%",
-              background: "var(--bg-inset)",
-              color: "var(--text-primary)",
-              border: "1px solid var(--border-subtle)",
-              borderRadius: 6,
-              padding: "9px 10px",
-              fontSize: 14,
-            }}
-          >
-            {villages.map((v) => (
-              <option key={v.id} value={v.id}>
-                {v.name} ({v.level})
-              </option>
-            ))}
-          </select>
-        </label>
-
-        {plan && <RelocationBox plan={plan} onViewRoute={handleViewRoute} />}
-
-        {plan && plan.ranked_sites.length > 0 && (
-          <div className="panel" style={{ padding: 20, marginTop: 16 }}>
-            <h4 style={{ fontSize: 13, color: "var(--text-muted)", marginBottom: 12 }}>
-              SITE SUITABILITY RANKING
-            </h4>
-            {plan.ranked_sites.map((s, i) => (
-              <div
-                key={s.site_id}
-                style={{
-                  display: "flex",
-                  justifyContent: "space-between",
-                  alignItems: "center",
-                  padding: "10px 0",
-                  borderBottom: i < plan.ranked_sites.length - 1 ? "1px solid var(--border-subtle)" : "none",
-                }}
-              >
-                <div>
-                  <div style={{ fontSize: 13.5, fontWeight: 600 }}>{s.site_name}</div>
-                  <div style={{ fontSize: 11.5, color: "var(--text-muted)" }}>
-                    {s.distance_km} km · {s.road_access} access
-                  </div>
-                </div>
-                <div className="mono" style={{ fontSize: 16, fontWeight: 700, color: i === 0 ? "var(--brand)" : "var(--text-primary)" }}>
-                  {s.suitability}
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
-
-        {route && (
-          <div className="panel" style={{ padding: 20, marginTop: 16 }}>
-            <h4 style={{ fontSize: 13, color: "var(--text-muted)", marginBottom: 10 }}>ROUTE</h4>
-            <p style={{ fontSize: 13 }}>
-              {route.from.name} → {route.to.name}: <strong className="mono">{route.distance_km} km</strong>
-            </p>
-            <p style={{ fontSize: 11.5, marginTop: 8, color: "var(--text-muted)" }}>{route.note}</p>
-          </div>
-        )}
-      </div>
-    </div>
-  );
+import type { Village,SafeSite,RelocationPlan } from "../../types";
+import "./relocation.css";
+const PILOT=["West Bengal","Bihar","Sikkim","Odisha"];
+export default function Relocation(){
+ const [searchParams,setSearchParams]=useSearchParams(); const selectedRegion=localStorage.getItem("rakshasetu_region")||"Bihar"; const [villages,setVillages]=useState<Village[]>([]); const [sites,setSites]=useState<SafeSite[]>([]); const [villageId,setVillageId]=useState(searchParams.get("village")||""); const [plan,setPlan]=useState<RelocationPlan|null>(null); const [route,setRoute]=useState<any>(null); const [routeLoading,setRouteLoading]=useState(false); const [error,setError]=useState("");
+ useEffect(()=>{Promise.all([api.villages.list(),api.safeSites.list()]).then(([v,s])=>{const regional=v.filter(x=>PILOT.includes(x.state)&&(!selectedRegion||selectedRegion==="India"||x.state===selectedRegion));const regionalSites=s.filter(x=>!x.region||selectedRegion==="India"||x.region===selectedRegion);setVillages(regional);setSites(regionalSites);if(!villageId&&regional.length)setVillageId(regional[0].id);}).catch(()=>setError("Could not load relocation data."))},[]);
+ useEffect(()=>{if(!villageId)return;setSearchParams({village:villageId});setRoute(null);setError("");api.relocation.plan(villageId).then(setPlan).catch(()=>setError("Could not generate a relocation recommendation."))},[villageId,setSearchParams]);
+ const selectedVillage=villages.find(v=>v.id===villageId); const regionalSites=useMemo(()=>selectedVillage?sites.filter(s=>!s.region||s.region===selectedVillage.state):sites,[sites,selectedVillage]);
+ async function handleViewRoute(siteId:string){if(!villageId)return;setRouteLoading(true);setError("");try{setRoute(await api.relocation.route(villageId,siteId))}catch{setError("Route service is unavailable. Try again or open Google Maps.")}finally{setRouteLoading(false)}}
+ return <div className="relocation-command"><div className="relocation-map"><RiskMap villages={selectedVillage?[selectedVillage]:villages} safeSites={regionalSites} selectedId={villageId} route={route?.path} center={selectedVillage?[selectedVillage.lat,selectedVillage.lng]:undefined}/></div><div className="relocation-panel"><div className="panel-heading"><div><span className="eyebrow">EVACUATION COMMAND</span><h2>Safe relocation</h2></div><span className="status-dot">LIVE</span></div><label className="relocation-select"><span>{selectedRegion.toUpperCase()} · SELECT ZONE</span><select value={villageId} onChange={e=>setVillageId(e.target.value)}>{villages.map(v=><option key={v.id} value={v.id}>{v.name} · {v.district} · {v.level}</option>)}</select></label>{selectedVillage&&<div className="relocation-context"><b>{selectedVillage.name}</b><span>{selectedVillage.district}, {selectedVillage.state}</span><span>Village point · {selectedVillage.lat.toFixed(5)}°, {selectedVillage.lng.toFixed(5)}° · Population {selectedVillage.population.toLocaleString()} · Risk {selectedVillage.risk_score}</span></div>}{error&&<div className="relocation-error">{error}</div>}{plan&&<RelocationBox plan={plan} onViewRoute={handleViewRoute}/>} {routeLoading&&<div className="panel route-status">Fetching verified road-network route…</div>}{route&&<div className="panel route-card"><span className="eyebrow">{route.route_available?"ROAD ROUTE VERIFIED":"EXACT ENDPOINTS · ROAD ROUTE UNAVAILABLE"}</span><h3>{route.from.name} → {route.to.name}</h3><div className="route-metrics"><span><b>{route.road_distance_km} km</b><small>road distance</small></span><span><b>{route.road_eta_minutes!=null?`${route.road_eta_minutes} min`:"—"}</b><small>road ETA</small></span><span><b>{route.air_distance_km} km</b><small>point-to-point</small></span><span><b>{route.router}</b><small>routing source</small></span></div><div className="route-endpoints"><span>FROM · {route.from.lat.toFixed(5)}°, {route.from.lng.toFixed(5)}°</span><span>TO · {route.to.lat.toFixed(5)}°, {route.to.lng.toFixed(5)}°</span></div><div className="route-actions"><a className="btn" href={route.google_maps_driving_url} target="_blank" rel="noreferrer">Open Google Maps · Road</a><a className="btn secondary" href={route.google_maps_transit_url} target="_blank" rel="noreferrer">Google Maps · Transit</a></div><p>{route.note}</p></div>}{plan&&plan.ranked_sites.length>0&&<div className="panel ranking-panel"><h4>SITE SUITABILITY · BEST FIRST</h4>{plan.ranked_sites.map((s,i)=><div className="ranking-row" key={s.site_id}><div><strong>{i+1}. {s.site_name}</strong><small>{s.distance_km} km · {s.road_access} access · {s.available_capacity.toLocaleString()} free</small></div><b>{s.suitability}/100</b><button className="contact-chip" onClick={()=>handleViewRoute(s.site_id)}>Route</button></div>)}</div>}</div></div>;
 }

@@ -1,84 +1,14 @@
-import { MapContainer, TileLayer, CircleMarker, Tooltip, Popup } from "react-leaflet";
+import { MapContainer, TileLayer, CircleMarker, Tooltip, Popup, Polyline, useMap, LayersControl } from "react-leaflet";
+import { useEffect } from "react";
+import L from "leaflet";
 import "leaflet/dist/leaflet.css";
-import type { Village, SafeSite } from "../../types";
+import "./risk-map.css";
+import type { Village, SafeSite, LiveHazard } from "../../types";
 
-interface RiskMapProps {
-  villages: Village[];
-  safeSites?: SafeSite[];
-  selectedId?: string | null;
-  onSelectVillage?: (village: Village) => void;
-  center?: [number, number];
-  zoom?: number;
-}
-
-export default function RiskMap({
-  villages,
-  safeSites = [],
-  selectedId,
-  onSelectVillage,
-  center = [22.2, 88.65],
-  zoom = 10,
-}: RiskMapProps) {
-  return (
-    <MapContainer
-      center={center}
-      zoom={zoom}
-      style={{ height: "100%", width: "100%", background: "var(--bg-inset)" }}
-      zoomControl={true}
-    >
-      {/* Free OpenStreetMap tiles - no API key required. See README for
-          swapping in a Mapbox token for production-scale vector tiles. */}
-      <TileLayer
-        attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-        url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-      />
-
-      {villages.map((v) => {
-        const isSelected = v.id === selectedId;
-        return (
-          <CircleMarker
-            key={v.id}
-            center={[v.lat, v.lng]}
-            radius={isSelected ? 16 : 11}
-            pathOptions={{
-              color: v.color,
-              fillColor: v.color,
-              fillOpacity: isSelected ? 0.75 : 0.55,
-              weight: isSelected ? 3 : 1.5,
-            }}
-            eventHandlers={{
-              click: () => onSelectVillage?.(v),
-            }}
-          >
-            <Tooltip direction="top" offset={[0, -8]}>
-              <strong>{v.name}</strong>
-              <br />
-              Risk {v.risk_score} · {v.level}
-            </Tooltip>
-          </CircleMarker>
-        );
-      })}
-
-      {safeSites.map((s) => (
-        <CircleMarker
-          key={s.id}
-          center={[s.lat, s.lng]}
-          radius={8}
-          pathOptions={{
-            color: "#4f9cd9",
-            fillColor: "#4f9cd9",
-            fillOpacity: 0.5,
-            weight: 1.5,
-            dashArray: "3 2",
-          }}
-        >
-          <Popup>
-            <strong>{s.name}</strong>
-            <br />
-            Available capacity: {s.available_capacity.toLocaleString()}
-          </Popup>
-        </CircleMarker>
-      ))}
-    </MapContainer>
-  );
-}
+interface RiskMapProps { villages:Village[]; safeSites?:SafeSite[]; liveHazards?:LiveHazard[]; selectedId?:string|null; onSelectVillage?:(v:Village)=>void; region?:string; district?:string; route?:[number,number][]; center?:[number,number]; zoom?:number }
+type View={center:[number,number];zoom:number};
+const REGION_VIEWS:Record<string,View>={India:{center:[22.6,79],zoom:5},"West Bengal":{center:[23.9,87.8],zoom:7},Bihar:{center:[25.9,85.7],zoom:7},Odisha:{center:[20.4,84.4],zoom:7},Sikkim:{center:[27.6,88.5],zoom:9}};
+function Viewport({villages,region,district,route}:{villages:Village[];region?:string;district?:string;route?:[number,number][]}){const map=useMap();useEffect(()=>{map.invalidateSize({animate:false});const points=route?.length?route:villages.map(v=>[v.lat,v.lng] as [number,number]);if(route?.length){const b=L.latLngBounds(route);if(b.isValid()){map.fitBounds(b,{padding:[70,70],maxZoom:14,animate:true,duration:.65});return}}if(district&&points.length){const b=L.latLngBounds(points);if(b.isValid()){map.fitBounds(b,{padding:[55,55],maxZoom:12,animate:true,duration:.65});return}}const view=REGION_VIEWS[region||""];if(view){map.setView(view.center,view.zoom,{animate:true,duration:.65});return}if(points.length&&region){const b=L.latLngBounds(points);if(b.isValid())map.fitBounds(b,{padding:[45,45],maxZoom:9,animate:true,duration:.65});return}map.setView([25.4,86],5,{animate:false})},[map,villages,region,district,route]);return null}
+function hazardColor(h:LiveHazard){if(h.type.toLowerCase().includes("fire"))return h.severity==="CRITICAL"?"#ff1744":"#ff7a00";if(h.severity==="CRITICAL")return "#ff1744";if(h.severity==="HIGH")return "#ff6b35";if(h.severity==="MODERATE")return "#ffd23f";return "#57d99a"}
+function nearestVillage(lat:number,lng:number,villages:Village[]){return villages.reduce<Village|null>((best,v)=>{const d=(v.lat-lat)**2+(v.lng-lng)**2;return !best||d<((best.lat-lat)**2+(best.lng-lng)**2)?v:best},null)}
+export default function RiskMap({villages,safeSites=[],liveHazards=[],selectedId,onSelectVillage,region,district,route,center=[25.4,86],zoom=6}:RiskMapProps){const view=REGION_VIEWS[region||""];const satelliteDate=new Date(Date.now()-86400000).toISOString().slice(0,10);return <MapContainer center={view?.center||center} zoom={view?.zoom||zoom} minZoom={3} maxZoom={18} scrollWheelZoom zoomControl doubleClickZoom dragging touchZoom style={{height:"100%",width:"100%"}} preferCanvas><Viewport villages={villages} region={region} district={district} route={route}/><LayersControl position="topright"><LayersControl.BaseLayer checked name="Street map"><TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" maxZoom={19} keepBuffer={2} updateWhenIdle updateWhenZooming={false}/></LayersControl.BaseLayer><LayersControl.Overlay name="Near-real-time satellite"><TileLayer url={`https://gibs.earthdata.nasa.gov/wmts/epsg3857/best/VIIRS_SNPP_CorrectedReflectance_TrueColor/default/${satelliteDate}/GoogleMapsCompatible_Level9/{z}/{y}/{x}.jpg`} opacity={.88} maxZoom={9}/></LayersControl.Overlay></LayersControl>{villages.map(v=>{const selected=v.id===selectedId;const radius=selected?20:Math.max(8,Math.min(18,7+v.risk_score/9));return <CircleMarker key={`glow-${v.id}`} center={[v.lat,v.lng]} radius={radius+7} className={`risk-zone-glow risk-zone-${v.level.toLowerCase()}`} pathOptions={{color:v.color,fillColor:v.color,fillOpacity:.08,weight:2,opacity:.55}}/>})}{villages.map(v=>{const selected=v.id===selectedId;const radius=selected?20:Math.max(8,Math.min(18,7+v.risk_score/9));return <CircleMarker key={v.id} center={[v.lat,v.lng]} radius={radius} className={`risk-pulse risk-pulse-${v.level.toLowerCase()}`} pathOptions={{color:v.color,fillColor:v.color,fillOpacity:selected?.92:.78,weight:selected?3:2}} eventHandlers={{click:()=>onSelectVillage?.(v)}}><Tooltip direction="top" offset={[0,-8]}><strong>{v.name}</strong><br/>{v.district}, {v.state}<br/><b>Risk {v.risk_score} · {v.level}</b><br/>Population {v.population.toLocaleString()}</Tooltip></CircleMarker>})}{liveHazards.map(h=>{const c=hazardColor(h);const fire=h.type.toLowerCase().includes("fire");const nearest=nearestVillage(h.lat,h.lng,villages);const namedPlace=fire?(nearest?`Near ${nearest.name}`:(district||region||"Selected region")):(h.title||"Live hazard observation");return <CircleMarker key={`live-${h.id}`} center={[h.lat,h.lng]} radius={fire?7:Math.max(8,Math.min(15,7+(h.magnitude||2)))} className={`live-hazard-pulse live-${h.severity.toLowerCase()} ${fire?"live-fire":""}`} pathOptions={{color:c,fillColor:c,fillOpacity:.88,weight:2}}><Popup><div className="live-popup"><div className="live-popup-kicker">LIVE {h.type.toUpperCase()}</div><strong>{namedPlace}</strong><span>{fire&&nearest?`${nearest.district}, ${nearest.state}`:(h.detail||"Public real-time observation")}</span>{nearest&&fire&&<span className="live-popup-location"><b>Mapped area</b> · {nearest.name}</span>}<b style={{color:c}}>{fire?(h.frp!=null?`FRP ${h.frp.toFixed(1)} MW`:h.severity):`Magnitude ${h.magnitude?.toFixed(1)??"—"} · ${h.severity}`}</b><small>Source: {h.source}</small>{h.url&&<a href={h.url} target="_blank" rel="noreferrer">Open source details →</a>}</div></Popup></CircleMarker>})}{safeSites.map(s=><CircleMarker key={s.id} center={[s.lat,s.lng]} radius={9} className="safe-pulse" pathOptions={{color:"#20c7ff",fillColor:"#38bdf8",fillOpacity:.9,weight:2}}><Popup><strong>{s.name}</strong><br/>SAFE SITE · Available {s.available_capacity.toLocaleString()}<br/>Facilities: {s.facilities.slice(0,4).join(", ")}</Popup></CircleMarker>)}{route?.length?<Polyline positions={route} pathOptions={{color:"#25a7ff",weight:5,opacity:.92,dashArray:"10 8"}}/>:null}</MapContainer>}

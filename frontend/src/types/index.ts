@@ -5,9 +5,14 @@ export interface Village {
   name: string;
   district: string;
   state: string;
+  region?: string;
   lat: number;
   lng: number;
   population: number;
+  households?: number;
+  children?: number;
+  elderly?: number;
+  other_vulnerable?: number;
   risk_score: number;
   hazard: number;
   exposure: number;
@@ -35,6 +40,7 @@ export interface VillageDetail extends Village {
 export interface SafeSite {
   id: string;
   name: string;
+  region?: string;
   lat: number;
   lng: number;
   capacity: number;
@@ -75,9 +81,39 @@ export interface RelocationPlan {
 export interface Alert {
   village_id: string;
   village_name: string;
+  district?: string;
+  state?: string;
+  lat?: number;
+  lng?: number;
+  population?: number;
   level: "CRITICAL" | "HIGH" | "WARNING";
   risk_score: number;
   message: string;
+  action?: string;
+  source?: string;
+}
+
+export interface LiveHazard {
+  id: string;
+  type: "Earthquake" | "Fire Hotspot" | string;
+  title?: string;
+  lat: number;
+  lng: number;
+  magnitude?: number | null;
+  confidence?: string | number;
+  frp?: number | null;
+  time?: number | string | null;
+  severity: "CRITICAL" | "HIGH" | "MODERATE" | "LOW";
+  source: string;
+  url?: string;
+  detail?: string;
+}
+
+export interface LiveHazardFeed {
+  updated_at: string;
+  items: LiveHazard[];
+  sources: { name: string; status: string; count?: number }[];
+  note?: string;
 }
 
 export interface RiskSummary {
