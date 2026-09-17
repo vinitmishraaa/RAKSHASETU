@@ -1,21 +1,52 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.core.config import get_settings
-from app.api import villages, hazards, risk, safesites, relocation, alerts, history, reports, assistant, live, routing
+from app.api import villages, hazards, risk, safesites, relocation, alerts, history, reports, assistant, live, routing, regions
 from app.data import synthetic
 from app.data.regional import build_regional_data
 
-settings=get_settings()
-# Legacy seed data remains available only to older internal endpoints; the
-# public villages, alerts, history, safe-site and live-feed paths use open data.
-regional_villages,regional_sites=build_regional_data()
+settings = get_settings()
+# Legacy seed objects are kept only for older internal modules. Public geography
+# and live-data routes query external/open sources at request time.
+regional_villages, regional_sites = build_regional_data()
 synthetic.VILLAGES.extend(regional_villages)
 synthetic.SAFE_SITES.extend(regional_sites)
-app=FastAPI(title=settings.APP_NAME,description="RakshaSetu disaster risk and response decision-support API using live/open data.",version="0.4.0")
-origins=[o.strip() for o in settings.CORS_ORIGINS.split(",") if o.strip()]
-app.add_middleware(CORSMiddleware,allow_origins=origins,allow_credentials=True,allow_methods=["*"],allow_headers=["*"])
-for router in (villages.router,hazards.router,risk.router,safesites.router,relocation.router,alerts.router,history.router,reports.router,assistant.router,live.router,routing.router): app.include_router(router)
+
+app = FastAPI(
+    title=settings.APP_NAME,
+    description="RakshaSetu disaster risk and response decision-support API using live/open data.",
+    version="0.5.0",
+)
+origins = [o.strip() for o in settings.CORS_ORIGINS.split(",") if o.strip()]
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+for router in (
+    regions.router,
+    villages.router,
+    hazards.router,
+    risk.router,
+    safesites.router,
+    relocation.router,
+    alerts.router,
+    history.router,
+    reports.router,
+    assistant.router,
+    live.router,
+    routing.router,
+):
+    app.include_router(router)
+
+
 @app.get("/")
-def root(): return {"service":settings.APP_NAME,"status":"ok","data_mode":"live-open-data","docs":"/docs"}
+def root():
+    return {"service": settings.APP_NAME, "status": "ok", "data_mode": "live-open-data", "docs": "/docs"}
+
+
 @app.get("/api/health")
-def health(): return {"status":"healthy","data_mode":"live-open-data"}
+def health():
+    return {"status": "healthy", "data_mode": "live-open-data"}
