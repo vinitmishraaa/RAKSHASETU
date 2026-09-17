@@ -1,5 +1,71 @@
-import {useEffect,useState} from "react";
-import {api} from "../../services/api";
-interface Props{states:string[];state:string;setState:(v:string)=>void;districts:string[];district:string;setDistrict:(v:string)=>void;cities:string[];city:string;setCity:(v:string)=>void}
-function Select({label,value,onChange,options,disabled,loading}:{label:string;value:string;onChange:(v:string)=>void;options:string[];disabled?:boolean;loading?:boolean}){return <label className="filter-field"><span>{label}</span><select value={value} disabled={disabled} onChange={e=>onChange(e.target.value)}><option value="">{loading?"Loading…":"Select"}</option>{options.map(x=><option key={x} value={x}>{x}</option>)}</select></label>}
-export default function FilterBar({states,state,setState,districts,district,setDistrict,cities,city,setCity}:Props){const[liveStates,setLiveStates]=useState(states),[liveDistricts,setLiveDistricts]=useState(districts),[liveCities,setLiveCities]=useState(cities);const[loading,setLoading]=useState(false);const[error,setError]=useState("");useEffect(()=>{api.regions.states().then(r=>setLiveStates(r.map(x=>x.name).filter(Boolean).sort())).catch(e=>setError(e.message))},[]);useEffect(()=>{setLiveDistricts([]);setLiveCities([]);setDistrict("");setCity("");if(!state)return;setLoading(true);api.regions.districts(state).then(r=>setLiveDistricts(r.map(x=>x.name).filter(Boolean).sort())).catch(e=>setError(e.message)).finally(()=>setLoading(false))},[state]);useEffect(()=>{setLiveCities([]);setCity("");if(!state||!district)return;setLoading(true);api.regions.cities(state,district).then(r=>setLiveCities(r.map(x=>x.name).filter(Boolean).sort())).catch(e=>setError(e.message)).finally(()=>setLoading(false))},[state,district]);function stateChange(v:string){setState(v);setDistrict("");setCity("");localStorage.setItem("rakshasetu_region",v);localStorage.removeItem("rakshasetu_district");localStorage.removeItem("rakshasetu_city")}function districtChange(v:string){setDistrict(v);setCity("");localStorage.setItem("rakshasetu_district",v);localStorage.removeItem("rakshasetu_city")}function cityChange(v:string){setCity(v);localStorage.setItem("rakshasetu_city",v)}return <div className="filter-bar"><div className="filter-title"><span className="eyebrow">GEOGRAPHIC SCOPE</span><strong>State / UT → District → City / Town</strong></div><Select label="State / Union Territory" value={state} onChange={stateChange} options={liveStates} loading={loading&&!state}/><Select label="District" value={district} onChange={districtChange} options={liveDistricts} disabled={!state} loading={loading&&!!state&&!district}/><Select label="City / Town" value={city} onChange={cityChange} options={liveCities} disabled={!district} loading={loading&&!!district&&!city}/>{error&&<span className="filter-error">Live location data temporarily unavailable</span>}{(state||district||city)&&<button className="filter-clear" onClick={()=>{setState("");setDistrict("");setCity("");localStorage.removeItem("rakshasetu_region");localStorage.removeItem("rakshasetu_district");localStorage.removeItem("rakshasetu_city")}}>Clear</button>}</div>}
+import { useEffect, useState } from "react";
+
+interface Props {
+  states: string[];
+  state: string;
+  setState: (v: string) => void;
+  districts: string[];
+  district: string;
+  setDistrict: (v: string) => void;
+  cities: string[];
+  city: string;
+  setCity: (v: string) => void;
+  loading?: boolean;
+}
+
+function Select({ label, value, onChange, options, disabled, loading }: { label: string; value: string; onChange: (v: string) => void; options: string[]; disabled?: boolean; loading?: boolean }) {
+  return (
+    <label className="filter-field">
+      <span>{label}</span>
+      <select value={value} disabled={disabled} onChange={e => onChange(e.target.value)}>
+        <option value="">{loading ? "Loading…" : "Select"}</option>
+        {options.map(x => <option key={x} value={x}>{x}</option>)}
+      </select>
+    </label>
+  );
+}
+
+export default function FilterBar({ states, state, setState, districts, district, setDistrict, cities, city, setCity, loading }: Props) {
+  function stateChange(v: string) {
+    setState(v);
+    setDistrict("");
+    setCity("");
+    localStorage.setItem("rakshasetu_region", v);
+    localStorage.removeItem("rakshasetu_district");
+    localStorage.removeItem("rakshasetu_city");
+  }
+
+  function districtChange(v: string) {
+    setDistrict(v);
+    setCity("");
+    localStorage.setItem("rakshasetu_district", v);
+    localStorage.removeItem("rakshasetu_city");
+  }
+
+  function cityChange(v: string) {
+    setCity(v);
+    localStorage.setItem("rakshasetu_city", v);
+  }
+
+  function clear() {
+    setState("");
+    setDistrict("");
+    setCity("");
+    localStorage.removeItem("rakshasetu_region");
+    localStorage.removeItem("rakshasetu_district");
+    localStorage.removeItem("rakshasetu_city");
+  }
+
+  return (
+    <div className="filter-bar">
+      <div className="filter-title">
+        <span className="eyebrow">GEOGRAPHIC SCOPE</span>
+        <strong>State / UT → District → City / Town</strong>
+      </div>
+      <Select label="State / Union Territory" value={state} onChange={stateChange} options={states} loading={loading && !state} />
+      <Select label="District" value={district} onChange={districtChange} options={districts} disabled={!state} loading={loading && !!state && !district} />
+      <Select label="City / Town" value={city} onChange={cityChange} options={cities} disabled={!district} loading={loading && !!district && !city} />
+      {(state || district || city) && <button className="filter-clear" onClick={clear}>Clear</button>}
+    </div>
+  );
+}
