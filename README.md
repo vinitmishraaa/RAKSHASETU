@@ -1,144 +1,98 @@
-# RakshaSetu
+<div align="center">
 
-## GIS-Based Disaster Risk, Live Hazard Monitoring & Relocation Decision-Support System
+# 🛡️ RAKSHASETU
 
-RakshaSetu is a disaster-management command-centre prototype that brings **risk assessment, live hazard observations, vulnerable-location analysis, safe-site selection, relocation routing, alerts, analytics and an AI assistant** into one operational dashboard.
+### Disaster Risk • Live Hazard Monitoring • Safe-Site & Relocation Support
 
-The current demonstration coverage includes:
+<p>
+  <img src="https://img.shields.io/badge/React-18-61DAFB?style=for-the-badge&logo=react&logoColor=111827" alt="React" />
+  <img src="https://img.shields.io/badge/TypeScript-3178C6?style=for-the-badge&logo=typescript&logoColor=white" alt="TypeScript" />
+  <img src="https://img.shields.io/badge/Vite-646CFF?style=for-the-badge&logo=vite&logoColor=white" alt="Vite" />
+  <img src="https://img.shields.io/badge/FastAPI-009688?style=for-the-badge&logo=fastapi&logoColor=white" alt="FastAPI" />
+  <img src="https://img.shields.io/badge/Leaflet-199900?style=for-the-badge&logo=leaflet&logoColor=white" alt="Leaflet" />
+  <img src="https://img.shields.io/badge/Python-3776AB?style=for-the-badge&logo=python&logoColor=white" alt="Python" />
+</p>
+
+<i>A GIS-based disaster-management dashboard for monitoring hazards, assessing risk, finding suitable safe sites and supporting relocation decisions.</i>
+
+<p>
+  <a href="https://github.com/vinitmishraaa/RAKSHASETU">💻 GitHub Repository</a>
+</p>
+
+</div>
+
+---
+
+## 🚀 About RakshaSetu
+
+**RakshaSetu** is a disaster-management decision-support web application that brings operational information into one dashboard.
+
+It combines **GIS visualisation, risk assessment, live hazard observations, vulnerable-location analysis, safe-site selection, relocation planning, alerts, analytics and AI-assisted information access**.
+
+The current prototype is designed around regional disaster-management workflows and includes demonstration coverage for:
 
 - West Bengal
 - Bihar
 - Sikkim
 - Odisha
 
-The project combines a **React + TypeScript frontend** with a **FastAPI backend** and integrates GIS/map visualisation, a transparent risk engine, safe-site ranking, road-network routing, live public hazard feeds, regional news context and grounded AI assistance.
-
-> **Prototype data note:** Village, population, shelter inventory, rainfall trends and historical records are synthetic/demo data. Live observations such as earthquakes and FIRMS fire detections are external public-feed observations when configured and available. The application keeps this distinction visible.
+The application keeps prototype/synthetic records separate from external live observations where applicable.
 
 ---
 
-## Features
+## ✨ Key Features
 
-### Command Centre
-- Region/state-based disaster overview
-- Risk distribution and population-at-risk metrics
-- Interactive GIS map
-- Hazard markers and operational location context
-- Centralised view of villages, safe sites and alerts
-
-### Risk Assessment
-- Hazard, exposure and vulnerability based scoring
-- Risk classification: Critical, High, Moderate and Low
-- Explainable risk factors for monitored locations
-- Population and vulnerability context
-
-### Live Hazard Monitoring
-- USGS earthquake observations
-- NASA FIRMS fire hotspots when a FIRMS API key is configured
-- NASA GIBS satellite imagery layer
-- Exact latitude/longitude retained for map verification
-- Human-readable nearby location context for live observations
-
-### Safe-Site & Relocation Planning
-- Safe-site suitability ranking
-- Capacity-aware shelter selection
-- Safety, capacity, accessibility, distance, facilities and infrastructure factors
-- Multi-site allocation when one site cannot accommodate the complete population
-- OSRM road-network routing when available
-- Google Maps navigation hand-off using exact coordinates
-
-### Analytics & Reports
-- Overall risk summary
-- State/region comparison
-- District-level analysis
-- Risk-class distribution
-- Population-at-risk aggregation
-- Generated analytical snapshots from the application dataset
-
-### Alerts & Communication
-- Severity-based alert view
-- Location, district and state context
-- Risk and population information
-- Recommended-action workflow
-- Email/SMS composition interface
-- Browser/test siren behaviour for demonstration
-
-### AI Assistant
-- Grounded answers using RakshaSetu application context
-- Supports OpenAI, Google Gemini and Anthropic Claude providers
-- Avoids inventing supplied numbers, locations, capacities and events
-- Local deterministic fallback when an external AI provider is unavailable
+| Feature | Description |
+|---|---|
+| 🗺️ **GIS Command Centre** | Interactive map with monitored locations, hazards and safe sites. |
+| ⚠️ **Risk Assessment** | Calculates and classifies risk using hazard, exposure and vulnerability factors. |
+| 🌋 **Live Hazard Monitoring** | Displays available public hazard observations such as earthquakes and fire hotspots. |
+| 🏘️ **Vulnerable Locations** | Shows population and location-level vulnerability information. |
+| 🏠 **Safe-Site Ranking** | Ranks potential shelters using safety, capacity, accessibility, distance and infrastructure factors. |
+| 🛣️ **Relocation Planning** | Supports capacity-aware relocation planning and road-network routing when available. |
+| 🔔 **Alerts** | Provides severity-based alerts with location context and recommended actions. |
+| 📊 **Analytics** | Regional, district and risk-class summaries with population-at-risk information. |
+| 🛰️ **Satellite Layer** | Supports NASA GIBS imagery for additional situational awareness. |
+| 🤖 **AI Assistant** | Provides answers using the application's available risk and relocation context. |
+| 🧭 **Navigation Handoff** | Can hand selected locations to Google Maps using their coordinates. |
 
 ---
 
-## Architecture
+## 🧩 How It Works
 
 ```text
-                    External Public Sources
-        ┌─────────────────────────────────────────┐
-        │ USGS │ NASA FIRMS │ NASA GIBS           │
-        │ OSM  │ OSRM       │ Google News RSS     │
-        └──────────────────────┬──────────────────┘
-                               │
-                               ▼
-                 ┌─────────────────────────┐
-                 │     FastAPI Backend     │
-                 │                         │
-                 │ Data → Risk → Optimizer │
-                 │ Routing → Alerts → AI   │
-                 └────────────┬────────────┘
-                              │ REST API
-                              ▼
-                 ┌─────────────────────────┐
-                 │ React + TypeScript UI   │
-                 │                         │
-                 │ Command Centre          │
-                 │ Villages / Safe Sites   │
-                 │ Relocation / Alerts     │
-                 │ Analytics / AI          │
-                 └─────────────────────────┘
+                 🌐 External / Application Data
+                           │
+          ┌────────────────┼────────────────┐
+          ▼                ▼                ▼
+       Hazards         Location Data     Risk Data
+          │                │                │
+          └────────────────┼────────────────┘
+                           ▼
+                  🧠 Risk & Decision Layer
+                           │
+          ┌────────────────┼────────────────┐
+          ▼                ▼                ▼
+      Risk Score      Safe-Site Rank    Relocation Plan
+          │                │                │
+          └────────────────┼────────────────┘
+                           ▼
+                  🗺️ RakshaSetu Dashboard
+                           │
+        ┌──────────┬───────┼────────┬──────────┐
+        ▼          ▼       ▼        ▼          ▼
+     Command     Villages Safe    Alerts   Analytics
+     Centre               Sites
+                           │
+                           ▼
+                    🤖 AI Assistant
 ```
 
 ---
 
-## Technology Stack
+## ⚠️ Risk Assessment
 
-**Frontend**
-- React 18
-- TypeScript
-- Vite
-- React Router
-- Leaflet / React-Leaflet
-- Recharts
-
-**Backend**
-- Python
-- FastAPI
-- Uvicorn
-- Pydantic / Pydantic Settings
-- HTTPX
-- Python dotenv configuration
-
-**GIS & External Data**
-- OpenStreetMap
-- NASA GIBS
-- NASA FIRMS
-- USGS Earthquake Feed
-- OSRM
-- Google News RSS
-- Google Maps navigation links
-
-**AI**
-- OpenAI
-- Google Gemini
-- Anthropic Claude
-- Local grounded fallback
-
----
-
-## Risk Engine
-
-RakshaSetu uses a transparent prototype risk model:
+RakshaSetu uses an explainable prototype risk model based on three major dimensions:
 
 ```text
 Risk Score =
@@ -147,7 +101,7 @@ Risk Score =
   + Vulnerability × 0.30
 ```
 
-Risk classes used by the prototype:
+Risk categories used by the prototype:
 
 ```text
 75–100    CRITICAL
@@ -156,99 +110,134 @@ Risk classes used by the prototype:
 0–29.9    LOW
 ```
 
-The model is designed to be explainable and replaceable. These weights and thresholds are prototype parameters and should be calibrated against verified datasets and operational standards before production deployment.
+The dashboard can show the factors contributing to a location's risk so that the score is not treated as a black-box result.
 
 ---
 
-## Safe-Site Ranking
+## 🏠 Safe-Site & Relocation Planning
 
-The relocation planner evaluates candidate sites instead of selecting only the nearest location.
+The relocation module evaluates available safe sites instead of selecting a location only by distance.
 
 ```text
-Safety          30%
-Capacity        25%
-Accessibility   20%
-Distance        10%
-Facilities      10%
-Infrastructure   5%
+Candidate Safe Sites
+        ↓
+Safety + Capacity + Accessibility
+        ↓
+Distance + Facilities + Infrastructure
+        ↓
+Suitability Ranking
+        ↓
+Capacity Check
+        ↓
+Relocation Plan
+        ↓
+Road Route / Navigation
 ```
 
-Available capacity is calculated from the prototype shelter inventory:
+The prototype also supports multi-site allocation when a single location cannot accommodate the complete population.
+
+When available, road-network routing is handled through **OSRM**, while navigation can be handed off to Google Maps using exact coordinates.
+
+---
+
+## 🌐 Live Hazard & GIS Sources
+
+RakshaSetu can work with public external sources for situational awareness:
+
+| Source | Usage |
+|---|---|
+| **USGS** | Earthquake observations including location, magnitude, depth and time. |
+| **NASA FIRMS** | Satellite fire-hotspot observations when configured. |
+| **NASA GIBS** | Satellite imagery layer for map-based awareness. |
+| **OpenStreetMap** | Base map and geographic context. |
+| **OSRM** | Road-network routing when available. |
+| **Google News RSS** | Regional disaster-related news context. |
+
+External observations are presented as data signals and are not automatically treated as evacuation orders.
+
+---
+
+## 🤖 AI Assistant
+
+The AI Assistant is connected to RakshaSetu's application context so users can access information related to the dashboard's risk and relocation data.
+
+The backend includes support for external AI providers and a local fallback behaviour when an external provider is not configured.
+
+The assistant is intended to work with the information available to the application rather than inventing operational values.
+
+---
+
+## 🏗️ Architecture
 
 ```text
-Available Capacity = Total Capacity − Current Occupancy
+                         ┌─────────────────────────┐
+                         │      React + Vite       │
+                         │   TypeScript Frontend   │
+                         └────────────┬────────────┘
+                                      │
+                                  REST API
+                                      │
+                                      ▼
+                         ┌─────────────────────────┐
+                         │       FastAPI           │
+                         │        Backend          │
+                         └────────────┬────────────┘
+                                      │
+               ┌──────────────────────┼──────────────────────┐
+               ▼                      ▼                      ▼
+         Risk Engine            GIS / Routing          AI Assistant
+               │                      │                      │
+               ▼                      ▼                      ▼
+        Risk + Exposure       OSM / OSRM / GIBS      AI Provider / Fallback
+                                      │
+                                      ▼
+                              RakshaSetu Dashboard
 ```
 
-The resulting ranking can be used to build a relocation plan that considers both suitability and capacity.
+---
+
+## 🧰 Technology Stack
+
+| Layer | Technology |
+|---|---|
+| Frontend | React 18 + TypeScript |
+| Build Tool | Vite |
+| Routing | React Router |
+| Maps | Leaflet + React-Leaflet |
+| Charts | Recharts |
+| Backend | Python + FastAPI |
+| Server | Uvicorn |
+| Validation | Pydantic / Pydantic Settings |
+| HTTP | HTTPX |
+| Configuration | python-dotenv |
+| GIS Data | OpenStreetMap |
+| Satellite | NASA GIBS |
+| Hazard Data | USGS / NASA FIRMS |
+| Routing | OSRM |
+| AI | Anthropic / OpenAI / Google Gemini integrations |
 
 ---
 
-## Live Data Sources
-
-### USGS Earthquakes
-
-RakshaSetu can consume the public USGS earthquake GeoJSON feed and display event coordinates, magnitude, depth, timestamp and event information on the map.
-
-### NASA FIRMS
-
-When `FIRMS_API_KEY` is configured, the backend can request satellite fire-hotspot observations for the selected region. The application retains coordinates and observation details such as acquisition time, FRP, confidence and satellite/source information.
-
-A FIRMS hotspot is treated as an observation/signal, not as an automatic evacuation order.
-
-### NASA GIBS
-
-NASA GIBS imagery can be displayed as a near-real-time satellite visualisation layer for situational awareness.
-
-### Regional News
-
-The news module uses Google News RSS for regional disaster-related context. News is used for situational awareness and discovery rather than as an authoritative emergency command source.
-
----
-
-## Data Model
-
-The current prototype uses an in-memory synthetic data layer so the complete workflow can run without a database.
-
-Monitored village records include fields such as:
-
-- location and administrative information
-- population and households
-- children, elderly and other vulnerable population
-- elevation
-- river/road proximity
-- embankment condition
-- rainfall trend
-- flood, cyclone and landslide indicators
-
-Safe-site records include:
-
-- location
-- capacity and occupancy
-- available capacity
-- elevation
-- accessibility
-- infrastructure
-- facilities
-- hazard context
-
-The architecture is designed so this data layer can later be replaced with a verified **PostgreSQL + PostGIS** implementation.
-
----
-
-## Project Structure
+## 📁 Project Structure
 
 ```text
 RAKSHASETU/
+│
 ├── backend/
 │   ├── app/
+│   │   ├── ...                 # FastAPI application modules
+│   │   └── data/               # Application / prototype data
 │   ├── requirements.txt
 │   ├── .env.example
 │   └── Dockerfile
 │
 ├── frontend/
 │   ├── src/
+│   │   ├── ...                 # React + TypeScript application
+│   │   ├── components/
+│   │   └── pages/
 │   ├── package.json
-│   └── ...
+│   └── vite.config.*
 │
 ├── docker-compose.yml
 ├── LICENSE
@@ -257,53 +246,39 @@ RAKSHASETU/
 
 ---
 
-# Run RakshaSetu Locally
+# 🚀 Access RakshaSetu
 
-## Prerequisites
+## 🌐 GitHub
 
-Install:
+Repository:
+
+```text
+https://github.com/vinitmishraaa/RAKSHASETU
+```
+
+## 💻 Run Locally
+
+### Prerequisites
 
 - Python 3.12+
 - Node.js 18+
 - npm
 - Git
 
-External API keys are optional for the core prototype. They are only needed for the corresponding external integrations.
-
----
-
-## 1. Clone the Repository
+### 1. Clone the repository
 
 ```bash
 git clone https://github.com/vinitmishraaa/RAKSHASETU.git
 cd RAKSHASETU
 ```
 
----
-
-## 2. Start the Backend
-
-Open a terminal in the project root:
-
-### Windows PowerShell
+### 2. Start the backend
 
 ```powershell
 cd backend
 python -m venv .venv
 .\.venv\Scripts\Activate.ps1
 pip install -r requirements.txt
-```
-
-If PowerShell blocks script execution for the current session:
-
-```powershell
-Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass
-.\.venv\Scripts\Activate.ps1
-```
-
-Then start FastAPI:
-
-```powershell
 uvicorn app.main:app --reload --port 8000
 ```
 
@@ -319,9 +294,7 @@ API documentation:
 http://127.0.0.1:8000/docs
 ```
 
----
-
-## 3. Start the Frontend
+### 3. Start the frontend
 
 Open a second terminal:
 
@@ -331,107 +304,95 @@ npm install
 npm run dev
 ```
 
-Vite will provide the local frontend URL, normally:
+Vite will show the local URL, normally:
 
 ```text
 http://localhost:5173
 ```
 
-Open that address in a browser to access the RakshaSetu dashboard.
+Open that URL in your browser to access the RakshaSetu dashboard.
 
 ---
 
-## 4. Environment Configuration
+## ⚙️ Environment Configuration
 
-Copy the backend example environment file:
+The backend includes an environment template. The core prototype can run without external API keys by using its local/synthetic data and fallback behaviour.
 
 ```powershell
 cd backend
 Copy-Item .env.example .env
 ```
 
-Add only the keys for services you want to enable.
-
-Typical integrations include:
+Optional integrations can be enabled through the corresponding environment variables, including weather, AI, database and map-related services.
 
 ```text
-FIRMS_API_KEY
-OPENAI_API_KEY
-GEMINI_API_KEY
+OPENWEATHER_API_KEY
 ANTHROPIC_API_KEY
+MAPBOX_TOKEN
+DATABASE_URL
 ```
 
-The core synthetic-data workflow and local AI fallback can run without all of these keys.
-
-**Do not commit `.env` or API keys to GitHub.**
+Keep credentials in `.env` and never commit API keys or private credentials to the repository.
 
 ---
 
-# Quick Access
+## 📍 Quick Access
 
-Once both services are running:
-
-| Component | Address |
+| Component | Local Address |
 |---|---|
-| RakshaSetu Dashboard | `http://localhost:5173` |
-| FastAPI Backend | `http://127.0.0.1:8000` |
-| API Documentation | `http://127.0.0.1:8000/docs` |
+| 🛡️ RakshaSetu Dashboard | `http://localhost:5173` |
+| ⚙️ FastAPI Backend | `http://127.0.0.1:8000` |
+| 📚 API Documentation | `http://127.0.0.1:8000/docs` |
 
-The main workflow is available directly from the dashboard through the navigation sections for the command centre, monitored locations, safe sites, relocation, alerts, analytics and AI assistance.
+The dashboard provides access to the main RakshaSetu modules from the application navigation, including the command centre, monitored locations, safe sites, relocation, alerts, analytics and AI assistance.
 
 ---
 
-# Docker
+## 🐳 Docker
 
-A Docker Compose configuration is included for containerised deployment and future PostgreSQL/PostGIS integration.
+RakshaSetu also includes Docker configuration for containerised development.
 
 ```bash
 docker compose up --build
 ```
 
-The current prototype does not require Docker Compose to run because the backend can use its in-memory synthetic dataset directly.
+The local Python + Vite workflow can be used without Docker for the current prototype.
 
 ---
 
-# External Services & Internet Requirement
+## 🔐 Data & Prototype Notes
 
-RakshaSetu has two modes of operation:
+The current application includes synthetic/demo records for parts of the operational dataset, including village, population, shelter and historical information.
 
-**Core prototype mode**
-- Synthetic operational dataset
-- Local risk calculations
-- Safe-site ranking
-- Local fallback AI behaviour
-- Dashboard and analytics
+External live observations are kept conceptually separate from synthetic application records.
 
-**Connected mode**
-- Live USGS earthquake observations
-- NASA FIRMS fire hotspots
-- NASA GIBS satellite layer
-- OSRM road routing
-- Regional news
-- External AI providers
-
-Connected features require internet access and, where applicable, valid API credentials.
+For a production deployment, the data layer can be connected to verified operational datasets and a persistent GIS database such as PostgreSQL + PostGIS.
 
 ---
 
-# Prototype Scope
+## 🔮 Future Scope
 
-RakshaSetu is currently a **decision-support prototype**. It demonstrates the complete workflow from hazard/context observation to risk analysis, safe-site selection, relocation planning and communication support.
-
-For production deployment, the prototype data layer should be replaced with authoritative operational datasets and the communication, authentication, audit, GIS and infrastructure layers should be hardened for the intended deployment environment.
+- PostgreSQL + PostGIS based persistent data layer
+- More verified live hazard feeds
+- Advanced disaster-specific risk models
+- Expanded alert and escalation workflows
+- Stronger authentication and audit logging
+- Production-grade notification infrastructure
+- More detailed GIS layers and historical analysis
+- Additional regional and district datasets
 
 ---
 
-## License
+<div align="center">
 
-This project is licensed under the terms provided in [`LICENSE`](LICENSE).
+### 🛡️ RakshaSetu
 
----
+<i>Monitor • Assess • Locate • Relocate • Respond</i>
 
-## Repository
+<p>
+  <a href="https://github.com/vinitmishraaa/RAKSHASETU">💻 GitHub Repository</a>
+</p>
 
-**RakshaSetu — GIS-Based Disaster Risk, Live Hazard Monitoring & Relocation Decision-Support System**
+**Built by Vinit Mishra**
 
-Built as a modular disaster-management prototype combining GIS, risk analytics, live public hazard data, routing, alerts and grounded AI assistance.
+</div>
