@@ -5,13 +5,13 @@ router = APIRouter(prefix="/api/safesites", tags=["safe sites"])
 
 
 @router.get("")
-async def list_sites(region: str | None = None):
-    return await get_live_shelters(region)
+async def list_sites(region: str | None = None, state: str | None = None, district: str | None = None):
+    return await get_live_shelters(state or region, district)
 
 
 @router.get("/{site_id}")
-async def get_site(site_id: str, region: str | None = None):
-    sites = await get_live_shelters(region)
+async def get_site(site_id: str, region: str | None = None, state: str | None = None, district: str | None = None):
+    sites = await get_live_shelters(state or region, district)
     site = next((s for s in sites if s["id"] == site_id), None)
     if not site:
         raise HTTPException(status_code=404, detail="Mapped shelter not found")
@@ -19,7 +19,10 @@ async def get_site(site_id: str, region: str | None = None):
 
 
 @router.get("/rank-for/{village_id}")
-async def rank_for_village(village_id: str, region: str | None = None):
-    # Capacity-aware ranking requires verified operational capacity/occupancy data.
-    # Do not invent those quantities from map tags.
-    return {"available": False, "reason": "Capacity and occupancy are not available from the open shelter mapping; ranking is disabled until verified operational data is supplied.", "village_id": village_id, "sites": await get_live_shelters(region)}
+async def rank_for_village(village_id: str, region: str | None = None, state: str | None = None, district: str | None = None):
+    return {
+        "available": False,
+        "reason": "Capacity and occupancy are not available from the open shelter mapping; ranking is disabled until verified operational data is supplied.",
+        "village_id": village_id,
+        "sites": await get_live_shelters(state or region, district),
+    }
