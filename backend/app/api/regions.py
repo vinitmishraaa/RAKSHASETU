@@ -6,21 +6,48 @@ from fastapi import APIRouter, HTTPException
 import httpx
 
 router = APIRouter(prefix="/api/regions", tags=["regions"])
+
+# Stable Indian administrative list. Names/codes are not fetched from Overpass so
+# the first dropdown cannot fail because a public OSM endpoint is rate-limited.
+INDIA_REGIONS = [
+    ("Andaman and Nicobar Islands", "IN-AN"), ("Andhra Pradesh", "IN-AP"),
+    ("Arunachal Pradesh", "IN-AR"), ("Assam", "IN-AS"), ("Bihar", "IN-BR"),
+    ("Chandigarh", "IN-CH"), ("Chhattisgarh", "IN-CT"),
+    ("Dadra and Nagar Haveli and Daman and Diu", "IN-DH"), ("Delhi", "IN-DL"),
+    ("Goa", "IN-GA"), ("Gujarat", "IN-GJ"), ("Haryana", "IN-HR"),
+    ("Himachal Pradesh", "IN-HP"), ("Jammu and Kashmir", "IN-JK"),
+    ("Jharkhand", "IN-JH"), ("Karnataka", "IN-KA"), ("Kerala", "IN-KL"),
+    ("Ladakh", "IN-LA"), ("Lakshadweep", "IN-LD"), ("Madhya Pradesh", "IN-MP"),
+    ("Maharashtra", "IN-MH"), ("Manipur", "IN-MN"), ("Meghalaya", "IN-ML"),
+    ("Mizoram", "IN-MZ"), ("Nagaland", "IN-NL"), ("Odisha", "IN-OR"),
+    ("Puducherry", "IN-PY"), ("Punjab", "IN-PB"), ("Rajasthan", "IN-RJ"),
+    ("Sikkim", "IN-SK"), ("Tamil Nadu", "IN-TN"), ("Telangana", "IN-TG"),
+    ("Tripura", "IN-TR"), ("Uttar Pradesh", "IN-UP"), ("Uttarakhand", "IN-UT"),
+    ("West Bengal", "IN-WB"),
+]
+
 OVERPASS_ENDPOINTS = [
     "https://overpass-api.de/api/interpreter",
     "https://overpass.private.coffee/api/interpreter",
     "https://overpass.kumi.systems/api/interpreter",
 ]
 CACHE_TTL = 600
-INDIA_AREA_QUERY = '[out:json][timeout:60];area["ISO3166-1"="IN"][boundary=administrative]->.india;relation(area.india)[boundary=administrative][admin_level=4];out tags center;'
-_state_cache: tuple[float, list[dict]] | None = None
+_city_cache: dict[str, tuple[float, list[dict]]] = {}
 _district_cache: dict[str, tuple[float, list[dict]]] = {}
-_state_lock = asyncio.Lock()
+_city_locks: dict[str, asyncio.Lock] = {}
 _district_locks: dict[str, asyncio.Lock] = {}
 
 
 def _clean(value: str | None) -> str:
     return (value or "").strip()
+
+
+def _region(state: str) -> dict | None:
+    wanted = state.casefold().strip()
+    for name, code in INDIA_REGIONS:
+        if name.casefold() == wanted or code.casefold() == wanted:
+            return {"name": name, "code": code}
+    return None
 
 
 async def _overpass(query: str) -> dict:
@@ -39,40 +66,68 @@ async def _overpass(query: str) -> dict:
     raise HTTPException(status_code=503, detail="OpenStreetMap Overpass services are temporarily rate-limited or unavailable. Please retry shortly.") from last_error
 
 
-async def _state_relations() -> list[dict]:
-    global _state_cache
+@router.get("/states")
+async def states():
+    return [
+        {"name": name, "code": code, "source": "Indian administrative list", "source_url": "https://www.indiacode.nic.in/"}
+        for name, code in INDIA_REGIONS
+    ]
+
+
+async def _cities_for_state(state: str) -> list[dict]:
+    selected = _region(state)
+    if not selected:
+        raise HTTPException(status_code=404, detail="State / Union Territory not found")
+    code = selected["code"]
+    query = f'[out:json][timeout:60];area["ISO3166-2"="{code}"][boundary=administrative]->.state;nwr(area.state)[place~"^(city|town)$"];out center tags;'
+    data = await _overpass(query)
+    rows, seen = [], set()
+    for element in data.get("elements", []):
+        tags = element.get("tags", {})
+        name = _clean(tags.get("name:en") or tags.get("name"))
+        if not name or name.casefold() in seen:
+            continue
+        center = element.get("center") or {}
+        lat = element.get("lat", center.get("lat")); lng = element.get("lon", center.get("lon"))
+        if lat is None or lng is None:
+            continue
+        seen.add(name.casefold())
+        rows.append({
+            "name": name,
+            "state": selected["name"],
+            "place_type": tags.get("place"),
+            "district": _clean(tags.get("addr:district")) or None,
+            "lat": lat,
+            "lng": lng,
+            "source": "OpenStreetMap",
+            "source_url": f"https://www.openstreetmap.org/{element.get('type')}/{element.get('id')}",
+        })
+    return sorted(rows, key=lambda x: x["name"].casefold())
+
+
+@router.get("/cities")
+async def cities(state: str):
+    key = state.casefold().strip()
     now = time.monotonic()
-    if _state_cache and now - _state_cache[0] < CACHE_TTL:
-        return _state_cache[1]
-    async with _state_lock:
+    cached = _city_cache.get(key)
+    if cached and now - cached[0] < CACHE_TTL:
+        return cached[1]
+    lock = _city_locks.setdefault(key, asyncio.Lock())
+    async with lock:
         now = time.monotonic()
-        if _state_cache and now - _state_cache[0] < CACHE_TTL:
-            return _state_cache[1]
-        data = await _overpass(INDIA_AREA_QUERY)
-        states, seen = [], set()
-        for element in data.get("elements", []):
-            tags = element.get("tags", {})
-            name = _clean(tags.get("name:en") or tags.get("name"))
-            if not name or name.casefold() in seen:
-                continue
-            seen.add(name.casefold())
-            center = element.get("center") or {}
-            states.append({"name": name, "code": _clean(tags.get("ISO3166-2")) or None, "osm_relation_id": element.get("id"), "lat": center.get("lat"), "lng": center.get("lon"), "source": "OpenStreetMap", "source_url": f"https://www.openstreetmap.org/relation/{element.get('id')}"})
-        result = sorted(states, key=lambda x: x["name"].lower())
-        _state_cache = (time.monotonic(), result)
+        cached = _city_cache.get(key)
+        if cached and now - cached[0] < CACHE_TTL:
+            return cached[1]
+        result = await _cities_for_state(state)
+        _city_cache[key] = (time.monotonic(), result)
         return result
 
 
-@router.get("/states")
-async def states():
-    return await _state_relations()
-
-
 async def _districts_for_state(state: str) -> list[dict]:
-    code = next((s["code"] for s in await _state_relations() if s["name"].casefold() == state.casefold() or s["code"] == state), None)
-    selected = next((s for s in await _state_relations() if s["name"].casefold() == state.casefold() or s["code"] == state), None)
-    if not selected or not code:
-        raise HTTPException(status_code=404, detail="State not found in OpenStreetMap administrative data")
+    selected = _region(state)
+    if not selected:
+        raise HTTPException(status_code=404, detail="State / Union Territory not found")
+    code = selected["code"]
     query = f'[out:json][timeout:60];area["ISO3166-2"="{code}"][boundary=administrative]->.state;relation(area.state)[boundary=administrative][admin_level=6];out tags center;'
     data = await _overpass(query)
     rows, seen = [], set()
@@ -83,7 +138,15 @@ async def _districts_for_state(state: str) -> list[dict]:
             continue
         seen.add(name.casefold())
         center = element.get("center") or {}
-        rows.append({"name": name, "state": selected["name"], "osm_relation_id": element.get("id"), "lat": center.get("lat"), "lng": center.get("lon"), "source": "OpenStreetMap", "source_url": f"https://www.openstreetmap.org/relation/{element.get('id')}"})
+        rows.append({
+            "name": name,
+            "state": selected["name"],
+            "osm_relation_id": element.get("id"),
+            "lat": center.get("lat"),
+            "lng": center.get("lon"),
+            "source": "OpenStreetMap",
+            "source_url": f"https://www.openstreetmap.org/relation/{element.get('id')}",
+        })
     if not rows:
         query = f'[out:json][timeout:60];area["ISO3166-2"="{code}"][boundary=administrative]->.state;relation(area.state)[boundary=administrative][admin_level=5];out tags center;'
         data = await _overpass(query)
@@ -95,22 +158,32 @@ async def _districts_for_state(state: str) -> list[dict]:
             seen.add(name.casefold())
             center = element.get("center") or {}
             rows.append({"name": name, "state": selected["name"], "osm_relation_id": element.get("id"), "lat": center.get("lat"), "lng": center.get("lon"), "source": "OpenStreetMap", "source_url": f"https://www.openstreetmap.org/relation/{element.get('id')}"})
-    return sorted(rows, key=lambda x: x["name"].lower())
+    return sorted(rows, key=lambda x: x["name"].casefold())
 
 
 @router.get("/districts")
-async def districts(state: str):
+async def districts(state: str, city: str | None = None):
     key = state.casefold().strip()
     now = time.monotonic()
     cached = _district_cache.get(key)
-    if cached and now - cached[0] < CACHE_TTL:
-        return cached[1]
-    lock = _district_locks.setdefault(key, asyncio.Lock())
-    async with lock:
-        now = time.monotonic()
-        cached = _district_cache.get(key)
-        if cached and now - cached[0] < CACHE_TTL:
-            return cached[1]
-        result = await _districts_for_state(state)
-        _district_cache[key] = (time.monotonic(), result)
-        return result
+    if not cached or now - cached[0] >= CACHE_TTL:
+        lock = _district_locks.setdefault(key, asyncio.Lock())
+        async with lock:
+            cached = _district_cache.get(key)
+            if not cached or time.monotonic() - cached[0] >= CACHE_TTL:
+                result = await _districts_for_state(state)
+                _district_cache[key] = (time.monotonic(), result)
+                cached = _district_cache[key]
+    rows = cached[1]
+    if city:
+        city_l = city.casefold().strip()
+        city_rows = _city_cache.get(key)
+        matched = None
+        if city_rows:
+            matched = next((c for c in city_rows[1] if c["name"].casefold() == city_l and c.get("district")), None)
+        if matched:
+            district_l = matched["district"].casefold()
+            exact = [r for r in rows if r["name"].casefold() == district_l]
+            if exact:
+                return exact
+    return rows
