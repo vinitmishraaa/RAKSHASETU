@@ -1,8 +1,7 @@
 """Live, open geospatial data adapters used by RakshaSetu."""
 from __future__ import annotations
 from datetime import datetime, timezone
-from math import cos, radians, sqrt
-from xml.etree import ElementTree as ET
+from math import cos, exp, radians, sqrt
 import httpx
 
 REGION_CODES = {"Andaman and Nicobar Islands":"AN","Andhra Pradesh":"AP","Arunachal Pradesh":"AR","Assam":"AS","Bihar":"BR","Chandigarh":"CH","Chhattisgarh":"CT","Dadra and Nagar Haveli and Daman and Diu":"DH","Delhi":"DL","Goa":"GA","Gujarat":"GJ","Haryana":"HR","Himachal Pradesh":"HP","Jammu and Kashmir":"JK","Jharkhand":"JH","Karnataka":"KA","Kerala":"KL","Ladakh":"LA","Lakshadweep":"LD","Madhya Pradesh":"MP","Maharashtra":"MH","Manipur":"MN","Meghalaya":"ML","Mizoram":"MZ","Nagaland":"NL","Odisha":"OR","Puducherry":"PY","Punjab":"PB","Rajasthan":"RJ","Sikkim":"SK","Tamil Nadu":"TN","Telangana":"TG","Tripura":"TR","Uttar Pradesh":"UP","Uttarakhand":"UT","West Bengal":"WB"}
@@ -10,29 +9,37 @@ REGION_BBOXES = {"India":(6.0,37.2,68.0,97.5),"West Bengal":(21.4,27.3,85.8,89.9
 OVERPASS_ENDPOINTS = ["https://overpass-api.de/api/interpreter","https://overpass.private.coffee/api/interpreter","https://overpass.kumi.systems/api/interpreter"]
 USGS_URL="https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/all_day.geojson"
 OPEN_METEO_URL="https://api.open-meteo.com/v1/forecast"
-GDACS_RSS_URL="https://www.gdacs.org/contentdata/xml/rss.xml"
 
 def bbox_for(region): return REGION_BBOXES.get(region or "India",REGION_BBOXES["India"])
 def _clean(value): return (value or "").strip()
 
 async def _overpass(query):
+    last_error = None
     for endpoint in OVERPASS_ENDPOINTS:
         try:
             async with httpx.AsyncClient(timeout=70,headers={"User-Agent":"RakshaSetu/1.0 (open-data dashboard)"}) as client:
                 response=await client.post(endpoint,data={"data":query})
                 if response.status_code in (429,502,503,504): continue
                 response.raise_for_status(); return response.json()
-        except httpx.HTTPError: continue
-    raise RuntimeError("OpenStreetMap Overpass services are temporarily rate-limited or unavailable")
+        except httpx.HTTPError as exc: last_error = exc
+    raise RuntimeError("OpenStreetMap Overpass services are temporarily rate-limited or unavailable") from last_error
 
 async def _district_relation(state: str,district: str):
     code=REGION_CODES.get(state)
     if not code: return None
-    query=f'[out:json][timeout:60];area["ISO3166-2"="IN-{code}"][boundary=administrative]->.state;relation(area.state)[boundary=administrative][admin_level~"^(5|6)$"];out tags center;'
+    query=f'[out:json][timeout:60];area["ISO3166-2"="IN-{code}"][boundary=administrative]->.state;relation(area.state)[boundary=administrative][admin_level~"^(5|6)$"];out tags center bb;'
     data=await _overpass(query); wanted=district.casefold().strip()
     for element in data.get("elements",[]):
         tags=element.get("tags",{}); names=[_clean(tags.get("name:en")),_clean(tags.get("name")),_clean(tags.get("official_name:en"))]
         if wanted in {x.casefold() for x in names if x}: return element
+    return None
+
+def _district_bbox(relation):
+    b=relation.get("bounds") or {}
+    if all(k in b for k in ("minlat","maxlat","minlon","maxlon")): return (float(b["minlat"]),float(b["maxlat"]),float(b["minlon"]),float(b["maxlon"]))
+    c=relation.get("center") or {}
+    if c.get("lat") is not None and c.get("lon") is not None:
+        return (float(c["lat"])-0.25,float(c["lat"])+0.25,float(c["lon"])-0.25,float(c["lon"])+0.25)
     return None
 
 def _area_query(kind,region):
@@ -41,7 +48,7 @@ def _area_query(kind,region):
         code=REGION_CODES[name]; blocks.append(f'area["ISO3166-2"="IN-{code}"][boundary=administrative][admin_level=4]->.{code};')
         if kind=="node": selectors.append(f'nwr(area.{code})[place~"^(village|town|city)$"];')
         else: selectors += [f'node(area.{code})[amenity=shelter];',f'way(area.{code})[amenity=shelter];',f'relation(area.{code})[amenity=shelter];',f'node(area.{code})[emergency=shelter];',f'way(area.{code})[emergency=shelter];',f'relation(area.{code})[emergency=shelter];']
-    return "[out:json][timeout:60];("+"".join(blocks)+"("+"".join(selectors)+"););out center tags;"
+    return "[out:json][timeout:60];("+"".join(blocks)+"".join(selectors)+");out center tags;"
 
 async def get_live_settlements(region=None,district=None):
     if district and region in REGION_CODES:
@@ -78,8 +85,12 @@ async def _earthquakes():
 
 def _distance_km(lat1,lon1,lat2,lon2):
     x=radians(lon2-lon1)*cos(radians((lat1+lat2)/2)); y=radians(lat2-lat1); return 6371.0*sqrt(x*x+y*y)
-def _risk_from_observations(precip_mm,wind_kmh,earthquake_distance_km):
-    rain=min(100.0,max(0.0,(precip_mm or 0.0)*8.0)); wind=min(100.0,max(0.0,(wind_kmh or 0.0)*1.5)); quake=0.0 if earthquake_distance_km is None else max(0.0,100.0-earthquake_distance_km*4.0); return round(max(rain,wind,quake),1)
+def _risk_from_observations(precip_mm,wind_kmh,earthquake_distance_km,earthquake_magnitude=None):
+    rain=min(100.0,max(0.0,(precip_mm or 0.0)*8.0))
+    wind=min(100.0,max(0.0,((wind_kmh or 0.0)-25.0)*2.0))
+    if earthquake_distance_km is None or earthquake_magnitude is None: quake=0.0
+    else: quake=min(100.0,max(0.0,earthquake_magnitude*12.0*exp(-earthquake_distance_km/300.0)))
+    return round(max(rain,wind,quake),1),{"precipitation":round(rain,1),"wind":round(wind,1),"earthquake":round(quake,1)}
 def _level(score): return "CRITICAL" if score>=75 else "HIGH" if score>=50 else "MODERATE" if score>=30 else "LOW"
 
 async def enrich_settlements_with_weather(settlements):
@@ -89,26 +100,9 @@ async def enrich_settlements_with_weather(settlements):
         for start in range(0,len(settlements),80):
             batch=settlements[start:start+80]
             try:
-                response=await client.get(OPEN_METEO_URL,params={"latitude":",".join(str(x["lat"]) for x in batch),"longitude":",".join(str(x["lng"]) for x in batch),"current":"temperature_2m,precipitation,wind_speed_10m","timezone":"UTC"}); rows=response.json().get("current",[]); rows=[rows] if isinstance(rows,dict) else rows
+                response=await client.get(OPEN_METEO_URL,params={"latitude":",".join(str(x["lat"]) for x in batch),"longitude":",".join(str(x["lng"]) for x in batch),"current":"temperature_2m,precipitation,wind_speed_10m","timezone":"UTC"}); response.raise_for_status(); rows=response.json().get("current",[]); rows=[rows] if isinstance(rows,dict) else rows
             except Exception: rows=[]
             for i,item in enumerate(batch):
-                weather=rows[i] if i<len(rows) else {}; nearest=min(((_distance_km(item["lat"],item["lng"],q["lat"],q["lng"]),q) for q in earthquakes),default=(None,None),key=lambda x:x[0] if x[0] is not None else 1e12); distance,quake=nearest; score=_risk_from_observations(weather.get("precipitation"),weather.get("wind_speed_10m"),distance)
-                item.update({"weather":{"temperature_c":weather.get("temperature_2m"),"precipitation_mm":weather.get("precipitation"),"wind_speed_kmh":weather.get("wind_speed_10m")},"nearest_earthquake_km":round(distance,1) if distance is not None else None,"nearest_earthquake":quake,"risk_score":score,"level":_level(score),"risk_model":"Live indicator from Open-Meteo current precipitation/wind and nearest USGS earthquake; not an official hazard rating.","observed_at":datetime.now(timezone.utc).isoformat()})
+                weather=rows[i] if i<len(rows) else {}; nearest=min(((_distance_km(item["lat"],item["lng"],q["lat"],q["lng"]),q) for q in earthquakes),default=(None,None),key=lambda x:x[0] if x[0] is not None else 1e12); distance,quake=nearest; score,components=_risk_from_observations(weather.get("precipitation"),weather.get("wind_speed_10m"),distance,quake.get("magnitude") if quake else None)
+                item.update({"weather":{"temperature_c":weather.get("temperature_2m"),"precipitation_mm":weather.get("precipitation"),"wind_speed_kmh":weather.get("wind_speed_10m")},"nearest_earthquake_km":round(distance,1) if distance is not None else None,"nearest_earthquake":quake,"risk_score":score,"risk_components":components,"level":_level(score),"risk_model":"Live indicator from Open-Meteo current precipitation/wind plus USGS earthquake magnitude and distance; not an official hazard rating.","observed_at":datetime.now(timezone.utc).isoformat()})
     return settlements
-
-async def _gdacs_events(region=None):
-    south,north,west,east=bbox_for(region)
-    async with httpx.AsyncClient(timeout=20,headers={"User-Agent":"RakshaSetu/1.0"}) as client:
-        response=await client.get(GDACS_RSS_URL); response.raise_for_status()
-    root=ET.fromstring(response.text); items=[]
-    for item in root.findall(".//item"):
-        title=_clean(item.findtext("title")) or "GDACS event"; description=_clean(item.findtext("description")); link=_clean(item.findtext("link")); guid=_clean(item.findtext("guid")) or link or title; pub_date=_clean(item.findtext("pubDate")); lat=lon=None
-        for child in list(item):
-            tag=child.tag.lower().split("}")[-1]
-            try:
-                if tag in {"lat","latitude"}:lat=float(child.text)
-                elif tag in {"long","lon","longitude"}:lon=float(child.text)
-            except (TypeError,ValueError):pass
-        if lat is None or lon is None or not(south<=lat<=north and west<=lon<=east):continue
-        items.append({"id":f"gdacs-{guid}","type":"GDACS Alert","title":title,"lat":lat,"lng":lon,"time":pub_date,"severity":"ALERT","source":"GDACS","detail":description[:500],"url":link or "https://www.gdacs.org/"})
-    return items
