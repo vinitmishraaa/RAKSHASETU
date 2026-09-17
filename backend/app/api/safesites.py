@@ -9,15 +9,6 @@ async def list_sites(region: str | None = None, state: str | None = None, distri
     return await get_live_shelters(state or region, district)
 
 
-@router.get("/{site_id}")
-async def get_site(site_id: str, region: str | None = None, state: str | None = None, district: str | None = None):
-    sites = await get_live_shelters(state or region, district)
-    site = next((s for s in sites if s["id"] == site_id), None)
-    if not site:
-        raise HTTPException(status_code=404, detail="Mapped shelter not found")
-    return site
-
-
 @router.get("/rank-for/{village_id}")
 async def rank_for_village(village_id: str, region: str | None = None, state: str | None = None, district: str | None = None):
     return {
@@ -26,3 +17,12 @@ async def rank_for_village(village_id: str, region: str | None = None, state: st
         "village_id": village_id,
         "sites": await get_live_shelters(state or region, district),
     }
+
+
+@router.get("/{site_id}")
+async def get_site(site_id: str, region: str | None = None, state: str | None = None, district: str | None = None):
+    sites = await get_live_shelters(state or region, district)
+    site = next((s for s in sites if s["id"] == site_id), None)
+    if not site:
+        raise HTTPException(status_code=404, detail="Mapped shelter not found")
+    return site
