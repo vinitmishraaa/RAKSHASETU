@@ -1,4 +1,4 @@
-"""Live public hazard and news adapters for the four-state India demo."""
+"""Live public hazard and news adapters for RakshaSetu."""
 from __future__ import annotations
 from datetime import datetime, timezone
 from urllib.parse import quote_plus
@@ -8,7 +8,7 @@ import io
 import httpx
 from fastapi import APIRouter, Query
 from app.core.config import get_settings
-from app.data import synthetic
+from app.data.open_data import get_gdacs_events, get_sachet_alerts
 
 router = APIRouter(prefix="/api/live", tags=["live"])
 REGION_BBOXES={"India":(6.0,37.2,68.0,97.5),"West Bengal":(21.4,27.3,85.8,89.9),"Bihar":(24.0,27.6,83.2,88.4),"Sikkim":(27.0,28.2,88.0,88.9),"Odisha":(17.7,22.8,81.3,87.6)}
@@ -22,29 +22,20 @@ def fire_severity(frp:float)->str:
     if frp>=8:return "MODERATE"
     return "LOW"
 
-def nearest_named_area(lat:float,lng:float):
-    villages=synthetic.get_villages()
-    if not villages:return None
-    return min(villages,key=lambda v:(v["lat"]-lat)**2+(v["lng"]-lng)**2)
-
 async def fetch_firms(client:httpx.AsyncClient,key:str,source:str,bbox:tuple[float,float,float,float]):
     south,north,west,east=bbox; area=f"{west},{south},{east},{north}"
     url=f"https://firms.modaps.eosdis.nasa.gov/api/area/csv/{key}/{source}/{area}/1"
     response=await client.get(url); response.raise_for_status(); records=[]
     for row in csv.DictReader(io.StringIO(response.text)):
-        try:
-            lat=float(row.get("latitude","")); lng=float(row.get("longitude","")); frp=float(row.get("frp") or 0)
+        try: lat=float(row.get("latitude","")); lng=float(row.get("longitude","")); frp=float(row.get("frp") or 0)
         except (TypeError,ValueError): continue
-        nearby=nearest_named_area(lat,lng)
-        place=f"Near {nearby['name']}" if nearby else "Selected region"
-        area_name=f"{nearby['district']}, {nearby['state']}" if nearby else "Selected region"
-        records.append({"id":f"fire-{source}-{row.get('acq_date')}-{row.get('acq_time')}-{lat}-{lng}","type":"Fire Hotspot","title":place,"location_name":place,"lat":lat,"lng":lng,"frp":frp,"confidence":row.get("confidence"),"time":f"{row.get('acq_date','')} {row.get('acq_time','')}","severity":fire_severity(frp),"source":f"NASA FIRMS · {source}","detail":f"{place} · {area_name} · FRP {frp:.1f} MW · confidence {row.get('confidence') or 'n/a'} · satellite {row.get('satellite') or source}","url":"https://firms.modaps.eosdis.nasa.gov/"})
+        records.append({"id":f"fire-{source}-{row.get('acq_date')}-{row.get('acq_time')}-{lat}-{lng}","type":"Fire Hotspot","title":"NASA satellite fire detection","location_name":"Satellite detection","lat":lat,"lng":lng,"frp":frp,"confidence":row.get("confidence"),"time":f"{row.get('acq_date','')} {row.get('acq_time','')}","severity":fire_severity(frp),"source":f"NASA FIRMS · {source}","detail":f"FRP {frp:.1f} MW · confidence {row.get('confidence') or 'n/a'} · satellite {row.get('satellite') or source}","url":"https://firms.modaps.eosdis.nasa.gov/"})
     return records
 
 @router.get("/hazards")
 async def live_hazards(region:str|None=Query(default=None)):
     settings=get_settings(); bbox=REGION_BBOXES.get(region or "India",REGION_BBOXES["India"]); items=[]; sources=[]
-    async with httpx.AsyncClient(timeout=15,headers={"User-Agent":"RakshaSetu-Demo/1.0"}) as client:
+    async with httpx.AsyncClient(timeout=18,headers={"User-Agent":"RakshaSetu/1.0 (open-data dashboard)"}) as client:
         try:
             r=await client.get("https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/all_day.geojson"); r.raise_for_status()
             for feature in r.json().get("features",[]):
@@ -54,6 +45,14 @@ async def live_hazards(region:str|None=Query(default=None)):
                 items.append({"id":feature.get("id"),"type":"Earthquake","title":props.get("place") or "Earthquake event","lat":float(coords[1]),"lng":float(coords[0]),"magnitude":mag,"time":props.get("time"),"severity":severity,"source":"USGS","detail":f"{props.get('place') or 'Earthquake event'} · magnitude {mag:.1f} · depth {float(coords[2] or 0):.1f} km","url":props.get("url")})
             sources.append({"name":"USGS Earthquake Feed","status":"live","count":len([x for x in items if x["type"]=="Earthquake"])})
         except Exception as exc: sources.append({"name":"USGS Earthquake Feed","status":f"unavailable: {str(exc)[:100]}"})
+        try:
+            gdacs=await get_gdacs_events(region); items.extend(gdacs.get("events",[])); sources.append({"name":"GDACS","status":"live","count":gdacs.get("count",0)})
+        except Exception as exc: sources.append({"name":"GDACS","status":f"unavailable: {str(exc)[:100]}"})
+        try:
+            sachet=await get_sachet_alerts(region); sources.append({"name":"SACHET · NDMA","status":"live","count":sachet.get("count",0)})
+            for alert in sachet.get("alerts",[]):
+                items.append({"id":alert["id"],"type":"Official CAP Alert","title":alert["title"],"lat":None,"lng":None,"severity":alert["severity"],"time":alert["published"],"source":alert["source"],"detail":alert["description"],"url":alert["url"]})
+        except Exception as exc: sources.append({"name":"SACHET · NDMA","status":f"unavailable: {str(exc)[:100]}"})
         if settings.FIRMS_API_KEY:
             fire_count=0
             for sensor in ("VIIRS_NOAA20_NRT","VIIRS_NOAA21_NRT"):
@@ -62,14 +61,14 @@ async def live_hazards(region:str|None=Query(default=None)):
                 except Exception as exc: sources.append({"name":f"NASA FIRMS · {sensor}","status":f"unavailable: {str(exc)[:100]}"})
             sources.append({"name":"NASA FIRMS","status":"live","count":fire_count})
         else: sources.append({"name":"NASA FIRMS","status":"key_required"})
-    items.sort(key=lambda x:(x["severity"]!="CRITICAL",x["severity"]!="HIGH",-(float(x.get("magnitude") or 0)+float(x.get("frp") or 0)/100)))
-    return {"updated_at":datetime.now(timezone.utc).isoformat(),"items":items,"sources":sources,"region":region or "India","note":"Live public observations. Satellite fire detections and earthquake feeds are signals, not official evacuation orders; verify official warnings before action."}
+    items.sort(key=lambda x:(x.get("severity") not in ("CRITICAL","Red"),x.get("severity") not in ("HIGH","Orange")))
+    return {"updated_at":datetime.now(timezone.utc).isoformat(),"items":items,"sources":sources,"region":region or "India","note":"Live public observations and official alerts. These feeds do not replace government evacuation instructions."}
 
 @router.get("/news")
 async def live_news(region:str=Query(...,min_length=2)):
     q=quote_plus(f'"{region}" (flood OR cyclone OR earthquake OR rainfall OR landslide OR disaster)'); url=f"https://news.google.com/rss/search?q={q}&hl=en-IN&gl=IN&ceid=IN:en"; articles=[]
     try:
-        async with httpx.AsyncClient(timeout=12,headers={"User-Agent":"RakshaSetu-Demo/1.0"}) as client:
+        async with httpx.AsyncClient(timeout=12,headers={"User-Agent":"RakshaSetu/1.0"}) as client:
             r=await client.get(url); r.raise_for_status()
         root=ET.fromstring(r.text)
         for item in root.findall("./channel/item")[:12]:
