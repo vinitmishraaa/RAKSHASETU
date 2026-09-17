@@ -15,6 +15,7 @@ def _region(state):
     for name,code in INDIA_REGIONS:
         if w in (name.casefold(),code.casefold()):return {"name":name,"code":code}
     return None
+
 async def _overpass(query):
     last=None
     for endpoint in OVERPASS_ENDPOINTS:
@@ -27,7 +28,8 @@ async def _overpass(query):
     raise HTTPException(status_code=503,detail="OpenStreetMap service is temporarily rate-limited. Please retry in a few seconds.") from last
 
 @router.get("/states")
-async def states():return [{"name":n,"code":c,"source":"Indian administrative list"} for n,c in INDIA_REGIONS]
+async def states():
+    return [{"name":n,"code":c,"source":"Indian administrative list"} for n,c in INDIA_REGIONS]
 
 async def _districts_for_state(state):
     selected=_region(state)
@@ -38,13 +40,16 @@ async def _districts_for_state(state):
     for e in data.get("elements",[]):
         t=e.get("tags",{});name=_clean(t.get("name:en") or t.get("name"))
         if not name or name.casefold() in seen:continue
-        seen.add(name.casefold());c=e.get("center") or {};rows.append({"name":name,"state":selected["name"],"osm_relation_id":e.get("id"),"lat":c.get("lat"),"lng":c.get("lon"),"source":"OpenStreetMap","source_url":f"https://www.openstreetmap.org/relation/{e.get('id')}"})
+        seen.add(name.casefold());c=e.get("center") or {}
+        rows.append({"name":name,"state":selected["name"],"osm_relation_id":e.get("id"),"lat":c.get("lat"),"lng":c.get("lon"),"source":"OpenStreetMap","source_url":f"https://www.openstreetmap.org/relation/{e.get('id')}"})
     if not rows:
-        query=f'[out:json][timeout:60];area["ISO3166-2"="{code}"][boundary=administrative]->.state;relation(area.state)[boundary=administrative][admin_level=5];out tags center;';data=await _overpass(query)
+        query=f'[out:json][timeout:60];area["ISO3166-2"="{code}"][boundary=administrative]->.state;relation(area.state)[boundary=administrative][admin_level=5];out tags center;'
+        data=await _overpass(query)
         for e in data.get("elements",[]):
             t=e.get("tags",{});name=_clean(t.get("name:en") or t.get("name"))
             if not name or name.casefold() in seen:continue
-            seen.add(name.casefold());c=e.get("center") or {};rows.append({"name":name,"state":selected["name"],"osm_relation_id":e.get("id"),"lat":c.get("lat"),"lng":c.get("lon"),"source":"OpenStreetMap","source_url":f"https://www.openstreetmap.org/relation/{e.get('id')}"})
+            seen.add(name.casefold());c=e.get("center") or {}
+            rows.append({"name":name,"state":selected["name"],"osm_relation_id":e.get("id"),"lat":c.get("lat"),"lng":c.get("lon"),"source":"OpenStreetMap","source_url":f"https://www.openstreetmap.org/relation/{e.get('id')}"})
     return sorted(rows,key=lambda x:x["name"].casefold())
 
 @router.get("/districts")
@@ -57,29 +62,33 @@ async def districts(state:str):
         if cached and time.monotonic()-cached[0]<CACHE_TTL:return cached[1]
         result=await _districts_for_state(state);_district_cache[key]=(time.monotonic(),result);return result
 
-async def _cities_for_state(state):
+async def _cities_for_district(state,district):
     selected=_region(state)
     if not selected:raise HTTPException(status_code=404,detail="State / Union Territory not found")
+    district_name=_clean(district)
+    if not district_name:raise HTTPException(status_code=400,detail="District is required")
     code=selected["code"]
-    query=f'[out:json][timeout:60];area["ISO3166-2"="{code}"][boundary=administrative]->.state;(node(area.state)[place=city];node(area.state)[place=town];);out tags;'
+    safe_name=district_name.replace('"','\\"')
+    # Resolve the selected district relation first, then query only city/town nodes
+    # inside that district. This avoids returning cities from the entire state.
+    query=f'[out:json][timeout:60];area["ISO3166-2"="{code}"][boundary=administrative]->.state;relation(area.state)[boundary=administrative][admin_level~"^(5|6)$"][name="{safe_name}"]->.district;map_to_area->.district_area;(node(area.district_area)[place=city];node(area.district_area)[place=town];);out tags;'
     data=await _overpass(query);rows=[];seen=set()
     for e in data.get("elements",[]):
-        t=e.get("tags",{});name=_clean(t.get("name:en") or t.get("name"));district=_clean(t.get("addr:district")) or _clean(t.get("is_in:county")) or None
+        t=e.get("tags",{});name=_clean(t.get("name:en") or t.get("name"))
         if not name or name.casefold() in seen:continue
-        seen.add(name.casefold());rows.append({"name":name,"state":selected["name"],"place_type":t.get("place"),"district":district,"lat":e.get("lat"),"lng":e.get("lon"),"source":"OpenStreetMap","source_url":f"https://www.openstreetmap.org/node/{e.get('id')}"})
+        seen.add(name.casefold())
+        rows.append({"name":name,"state":selected["name"],"district":district_name,"place_type":t.get("place"),"lat":e.get("lat"),"lng":e.get("lon"),"source":"OpenStreetMap","source_url":f"https://www.openstreetmap.org/node/{e.get('id')}"})
     return sorted(rows,key=lambda x:x["name"].casefold())
 
 @router.get("/cities")
-async def cities(state:str,district:str|None=None):
-    key=state.casefold().strip();now=time.monotonic();cached=_city_cache.get(key)
-    if not cached or now-cached[0]>=CACHE_TTL:
-        lock=_locks.setdefault(("city",key),asyncio.Lock())
-        async with lock:
-            cached=_city_cache.get(key)
-            if not cached or time.monotonic()-cached[0]>=CACHE_TTL:
-                result=await _cities_for_state(state);_city_cache[key]=(time.monotonic(),result);cached=_city_cache[key]
-    rows=cached[1]
-    if district:
-        wanted=district.casefold().strip();matched=[c for c in rows if c.get("district") and c["district"].casefold()==wanted]
-        if matched:return matched
-    return rows
+async def cities(state:str,district:str):
+    key=(state.casefold().strip(),district.casefold().strip())
+    now=time.monotonic();cached=_city_cache.get(key)
+    if cached and now-cached[0]<CACHE_TTL:return cached[1]
+    lock=_locks.setdefault(("city",key),asyncio.Lock())
+    async with lock:
+        cached=_city_cache.get(key)
+        if cached and time.monotonic()-cached[0]<CACHE_TTL:return cached[1]
+        result=await _cities_for_district(state,district)
+        _city_cache[key]=(time.monotonic(),result)
+        return result
