@@ -1,25 +1,20 @@
 from fastapi import APIRouter
-from app.data import synthetic
-from app.risk_engine.scoring import compute_risk
-from app.risk_engine.classification import classify
+from app.data.live import get_live_settlements, enrich_settlements_with_weather
 
 router = APIRouter(prefix="/api/risk", tags=["risk"])
 
 
 @router.get("/summary")
-def risk_summary():
-    villages = synthetic.get_villages()
+async def risk_summary(region: str | None = None):
+    villages = await enrich_settlements_with_weather(await get_live_settlements(region))
     counts = {"CRITICAL": 0, "HIGH": 0, "MODERATE": 0, "LOW": 0}
-    total_population_at_risk = 0
-    for v in villages:
-        indicators = compute_risk(v)
-        cls = classify(indicators["risk_score"])
-        counts[cls["level"]] += 1
-        if cls["level"] in ("CRITICAL", "HIGH"):
-            total_population_at_risk += v["population"]
-
-    return {
-        "total_villages": len(villages),
-        "counts": counts,
-        "population_at_risk": total_population_at_risk,
-    }
+    population_at_risk = None
+    known_population = 0
+    for village in villages:
+        level = village.get("level", "LOW")
+        counts[level] += 1
+        if village.get("population") is not None:
+            known_population += village["population"]
+            if level in ("CRITICAL", "HIGH"):
+                population_at_risk = (population_at_risk or 0) + village["population"]
+    return {"total_villages": len(villages), "counts": counts, "population_at_risk": population_at_risk, "known_population_records": known_population, "data_status": "live-open-data", "note": "Population totals are only calculated from OpenStreetMap records that publish a population tag; no estimate is substituted."}
