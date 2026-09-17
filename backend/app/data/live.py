@@ -34,12 +34,28 @@ async def _district_relation(state: str,district: str):
         if wanted in {x.casefold() for x in names if x}: return element
     return None
 
+async def _city_relation(state: str,district: str,city: str):
+    district_relation=await _district_relation(state,district)
+    if not district_relation: return None
+    district_area=int(district_relation["id"])+3600000000
+    wanted=city.casefold().strip()
+    query=f'[out:json][timeout:60];(relation(area:{district_area})[boundary=administrative][admin_level~"^(6|7|8)$"];way(area:{district_area})[boundary=administrative];);out tags center bb;'
+    data=await _overpass(query)
+    for element in data.get("elements",[]):
+        tags=element.get("tags",{}); names=[_clean(tags.get("name:en")),_clean(tags.get("name")),_clean(tags.get("official_name:en"))]
+        if wanted in {x.casefold() for x in names if x} and tags.get("boundary") == "administrative": return element
+    # A city may be mapped only as a place node. In that case there is no safe
+    # city polygon to use; return None rather than inventing a radius.
+    return None
+
+def _area_id(relation):
+    return int(relation["id"])+3600000000 if relation and relation.get("id") else None
+
 def _district_bbox(relation):
     b=relation.get("bounds") or {}
     if all(k in b for k in ("minlat","maxlat","minlon","maxlon")): return (float(b["minlat"]),float(b["maxlat"]),float(b["minlon"]),float(b["maxlon"]))
     c=relation.get("center") or {}
-    if c.get("lat") is not None and c.get("lon") is not None:
-        return (float(c["lat"])-0.25,float(c["lat"])+0.25,float(c["lon"])-0.25,float(c["lon"])+0.25)
+    if c.get("lat") is not None and c.get("lon") is not None: return (float(c["lat"])-0.25,float(c["lat"])+0.25,float(c["lon"])-0.25,float(c["lon"])+0.25)
     return None
 
 def _area_query(kind,region):
@@ -50,32 +66,44 @@ def _area_query(kind,region):
         else: selectors += [f'node(area.{code})[amenity=shelter];',f'way(area.{code})[amenity=shelter];',f'relation(area.{code})[amenity=shelter];',f'node(area.{code})[emergency=shelter];',f'way(area.{code})[emergency=shelter];',f'relation(area.{code})[emergency=shelter];']
     return "[out:json][timeout:60];("+"".join(blocks)+"".join(selectors)+");out center tags;"
 
-async def get_live_settlements(region=None,district=None):
+async def _scope_area(state,district,city):
+    if district and state in REGION_CODES:
+        district_relation=await _district_relation(state,district)
+        if not district_relation:return None,"district-unavailable"
+        if city:
+            city_relation=await _city_relation(state,district,city)
+            if city_relation:
+                return _area_id(city_relation),"city"
+            return _area_id(district_relation),"district-fallback-city-boundary-unavailable"
+        return _area_id(district_relation),"district"
+    return None,"state"
+
+async def get_live_settlements(region=None,district=None,city=None):
+    area_id,scope=await _scope_area(region,district,city)
     if district and region in REGION_CODES:
-        relation=await _district_relation(region,district)
-        if not relation: return []
-        area_id=int(relation["id"])+3600000000; data=await _overpass(f'[out:json][timeout:60];nwr(area:{area_id})[place~"^(village|town|city)$"];out center tags;')
-    else: data=await _overpass(_area_query("node",region))
+        if not area_id:return []
+        data=await _overpass(f'[out:json][timeout:60];nwr(area:{area_id})[place~"^(village|town|city)$"];out center tags;')
+    else:data=await _overpass(_area_query("node",region))
     items=[]
     for element in data.get("elements",[]):
         tags=element.get("tags",{}); center=element.get("center") or {}; lat=element.get("lat",center.get("lat")); lon=element.get("lon",center.get("lon"))
         if lat is None or lon is None: continue
         try: population=int(float(str(tags["population"]).replace(",",""))) if tags.get("population") else None
         except (TypeError,ValueError): population=None
-        items.append({"id":f"osm-{element['type']}-{element['id']}","name":tags.get("name:en") or tags.get("name") or "Unnamed mapped settlement","district":district or tags.get("addr:district"),"state":region if region in REGION_CODES else tags.get("addr:state"),"region":region or "India","lat":float(lat),"lng":float(lon),"population":population,"population_source":"OpenStreetMap population tag" if population is not None else None,"source":"OpenStreetMap","source_url":f"https://www.openstreetmap.org/{element['type']}/{element['id']}"})
+        items.append({"id":f"osm-{element['type']}-{element['id']}","name":tags.get("name:en") or tags.get("name") or "Unnamed mapped settlement","district":district or tags.get("addr:district"),"state":region if region in REGION_CODES else tags.get("addr:state"),"region":region or "India","city":city,"scope":scope,"lat":float(lat),"lng":float(lon),"population":population,"population_source":"OpenStreetMap population tag" if population is not None else None,"source":"OpenStreetMap","source_url":f"https://www.openstreetmap.org/{element['type']}/{element['id']}"})
     return items
 
-async def get_live_shelters(region=None,district=None):
+async def get_live_shelters(region=None,district=None,city=None):
+    area_id,scope=await _scope_area(region,district,city)
     if district and region in REGION_CODES:
-        relation=await _district_relation(region,district)
-        if not relation: return []
-        area_id=int(relation["id"])+3600000000; data=await _overpass(f'[out:json][timeout:60];(node(area:{area_id})[amenity=shelter];way(area:{area_id})[amenity=shelter];relation(area:{area_id})[amenity=shelter];node(area:{area_id})[emergency=shelter];way(area:{area_id})[emergency=shelter];relation(area:{area_id})[emergency=shelter];);out center tags;')
-    else: data=await _overpass(_area_query("shelter",region))
+        if not area_id:return []
+        data=await _overpass(f'[out:json][timeout:60];(node(area:{area_id})[amenity=shelter];way(area:{area_id})[amenity=shelter];relation(area:{area_id})[amenity=shelter];node(area:{area_id})[emergency=shelter];way(area:{area_id})[emergency=shelter];relation(area:{area_id})[emergency=shelter];);out center tags;')
+    else:data=await _overpass(_area_query("shelter",region))
     items=[]
     for element in data.get("elements",[]):
         tags=element.get("tags",{}); center=element.get("center") or {}; lat=element.get("lat",center.get("lat")); lon=element.get("lon",center.get("lon"))
         if lat is None or lon is None: continue
-        items.append({"id":f"osm-shelter-{element['type']}-{element['id']}","name":tags.get("name:en") or tags.get("name") or "Mapped emergency shelter","region":region or "India","district":district,"lat":float(lat),"lng":float(lon),"capacity":None,"current_occupancy":None,"available_capacity":None,"hazard_risk":None,"infrastructure_score":None,"facilities":[v for v in [tags.get("amenity"),tags.get("emergency"),tags.get("access")] if v],"verified":False,"source":"OpenStreetMap","source_url":f"https://www.openstreetmap.org/{element['type']}/{element['id']}","note":"Mapped location only. Capacity, occupancy and operational status are not inferred."})
+        items.append({"id":f"osm-shelter-{element['type']}-{element['id']}","name":tags.get("name:en") or tags.get("name") or "Mapped emergency shelter","region":region or "India","district":district,"city":city,"scope":scope,"lat":float(lat),"lng":float(lon),"capacity":None,"current_occupancy":None,"available_capacity":None,"hazard_risk":None,"infrastructure_score":None,"facilities":[v for v in [tags.get("amenity"),tags.get("emergency"),tags.get("access")] if v],"verified":False,"source":"OpenStreetMap","source_url":f"https://www.openstreetmap.org/{element['type']}/{element['id']}","note":"Mapped location only. Capacity, occupancy and operational status are not inferred."})
     return items
 
 async def _earthquakes():
@@ -86,10 +114,8 @@ async def _earthquakes():
 def _distance_km(lat1,lon1,lat2,lon2):
     x=radians(lon2-lon1)*cos(radians((lat1+lat2)/2)); y=radians(lat2-lat1); return 6371.0*sqrt(x*x+y*y)
 def _risk_from_observations(precip_mm,wind_kmh,earthquake_distance_km,earthquake_magnitude=None):
-    rain=min(100.0,max(0.0,(precip_mm or 0.0)*8.0))
-    wind=min(100.0,max(0.0,((wind_kmh or 0.0)-25.0)*2.0))
-    if earthquake_distance_km is None or earthquake_magnitude is None: quake=0.0
-    else: quake=min(100.0,max(0.0,earthquake_magnitude*12.0*exp(-earthquake_distance_km/300.0)))
+    rain=min(100.0,max(0.0,(precip_mm or 0.0)*8.0)); wind=min(100.0,max(0.0,((wind_kmh or 0.0)-25.0)*2.0))
+    quake=0.0 if earthquake_distance_km is None or earthquake_magnitude is None else min(100.0,max(0.0,earthquake_magnitude*12.0*exp(-earthquake_distance_km/300.0)))
     return round(max(rain,wind,quake),1),{"precipitation":round(rain,1),"wind":round(wind,1),"earthquake":round(quake,1)}
 def _level(score): return "CRITICAL" if score>=75 else "HIGH" if score>=50 else "MODERATE" if score>=30 else "LOW"
 
