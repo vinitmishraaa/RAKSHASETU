@@ -1,1 +1,185 @@
-.risk-pulse{animation:riskPulse 1.35s ease-in-out infinite;transform-box:fill-box;transform-origin:center}.risk-pulse-critical{animation-duration:.8s}.risk-pulse-high{animation-duration:1s}.risk-pulse-moderate{animation-duration:1.35s}.risk-pulse-low{animation-duration:1.8s}.risk-zone-glow{animation:zoneFlicker 1.45s ease-in-out infinite;transform-box:fill-box;transform-origin:center}.risk-zone-critical{animation-duration:.72s}.risk-zone-high{animation-duration:.95s}.risk-zone-moderate{animation-duration:1.3s}.risk-zone-low{animation-duration:1.75s}.live-hazard-pulse{animation:livePulse 1.1s ease-in-out infinite;transform-box:fill-box;transform-origin:center}.live-critical{animation-duration:.55s}.live-high{animation-duration:.8s}.live-moderate{animation-duration:1.15s}.live-fire{animation-duration:.7s}.safe-pulse{animation:safePulse 2.2s ease-in-out infinite;transform-box:fill-box;transform-origin:center}@keyframes riskPulse{0%,100%{transform:scale(1);opacity:.9}50%{transform:scale(1.48);opacity:.42}}@keyframes zoneFlicker{0%,100%{transform:scale(1);opacity:.22}50%{transform:scale(1.35);opacity:.72}}@keyframes livePulse{0%,100%{transform:scale(1);opacity:.95}50%{transform:scale(1.75);opacity:.28}}@keyframes safePulse{0%,100%{transform:scale(1);opacity:.9}50%{transform:scale(1.28);opacity:.55}}.live-popup{display:flex;flex-direction:column;gap:5px;min-width:190px;font-family:var(--font-ui)}.live-popup-kicker{font:800 9px var(--font-data);letter-spacing:.12em;color:#ef4444}.live-popup strong{font-size:12px}.live-popup span,.live-popup small{font-size:9px;color:#526274}.live-popup-location{font-family:var(--font-data)}.live-popup b{font-size:10px}.live-popup a{font-size:9px;color:#1589d1;text-decoration:none}.live-popup a:hover{text-decoration:underline}.leaflet-popup-content-wrapper{border-radius:12px}.leaflet-control-layers{border:1px solid rgba(13,26,41,.18)!important;border-radius:10px!important}.map-help{display:none}.filter-arrow{color:var(--brand);font-weight:800;padding-bottom:8px}.filter-field select:disabled{opacity:.45;cursor:not-allowed}.module-stack{display:flex;flex-direction:column;gap:12px}.module-stack .module-card{width:100%}
+/* Risk Zones & Signal Animations */
+
+/* Critical Blow-out Buffer Effect */
+@keyframes criticalBlowout {
+  0% {
+    transform: scale(1);
+    opacity: 0.9;
+    stroke-width: 3px;
+  }
+  50% {
+    transform: scale(2.4);
+    opacity: 0.35;
+    stroke-width: 1.5px;
+  }
+  100% {
+    transform: scale(3.2);
+    opacity: 0;
+    stroke-width: 0.5px;
+  }
+}
+
+@keyframes criticalCoreBlink {
+  0%, 100% {
+    opacity: 1;
+    filter: drop-shadow(0 0 8px rgba(229, 72, 77, 0.9));
+  }
+  50% {
+    opacity: 0.35;
+    filter: drop-shadow(0 0 2px rgba(229, 72, 77, 0.4));
+  }
+}
+
+/* Safe Zone Green Pulse */
+@keyframes safeGreenPulse {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 0.95;
+    filter: drop-shadow(0 0 6px rgba(16, 185, 129, 0.8));
+  }
+  50% {
+    transform: scale(1.6);
+    opacity: 0.35;
+    filter: drop-shadow(0 0 12px rgba(16, 185, 129, 0.95));
+  }
+}
+
+@keyframes highPulse {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 0.85;
+  }
+  50% {
+    transform: scale(1.55);
+    opacity: 0.3;
+  }
+}
+
+@keyframes moderatePulse {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 0.8;
+  }
+  50% {
+    transform: scale(1.3);
+    opacity: 0.4;
+  }
+}
+
+@keyframes liveHazardFlicker {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 0.95;
+  }
+  50% {
+    transform: scale(1.7);
+    opacity: 0.25;
+  }
+}
+
+/* Applied CSS Classes */
+.risk-zone-blowout-critical {
+  animation: criticalBlowout 1.2s cubic-bezier(0.2, 0.8, 0.4, 1) infinite;
+  transform-box: fill-box;
+  transform-origin: center;
+  pointer-events: none;
+}
+
+.risk-core-critical {
+  animation: criticalCoreBlink 0.8s ease-in-out infinite;
+  transform-box: fill-box;
+  transform-origin: center;
+  cursor: pointer;
+}
+
+.risk-zone-high {
+  animation: highPulse 1.4s ease-in-out infinite;
+  transform-box: fill-box;
+  transform-origin: center;
+}
+
+.risk-zone-moderate {
+  animation: moderatePulse 1.9s ease-in-out infinite;
+  transform-box: fill-box;
+  transform-origin: center;
+}
+
+.risk-zone-low {
+  transform-box: fill-box;
+  transform-origin: center;
+}
+
+/* Safe Shelters */
+.safe-pulse-green {
+  animation: safeGreenPulse 1.6s ease-in-out infinite;
+  transform-box: fill-box;
+  transform-origin: center;
+  cursor: pointer;
+}
+
+.safe-buffer-green {
+  animation: safeGreenPulse 2.2s ease-in-out infinite;
+  transform-box: fill-box;
+  transform-origin: center;
+  pointer-events: none;
+}
+
+/* Live Hazards */
+.live-hazard-pulse {
+  animation: liveHazardFlicker 1.1s ease-in-out infinite;
+  transform-box: fill-box;
+  transform-origin: center;
+}
+
+/* Popup & Leaflet Overlays */
+.live-popup {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  min-width: 200px;
+  font-family: var(--font-ui, sans-serif);
+}
+
+.live-popup-kicker {
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  color: #ef4444;
+  text-transform: uppercase;
+}
+
+.live-popup strong {
+  font-size: 13px;
+  color: #0f172a;
+}
+
+.live-popup span,
+.live-popup small {
+  font-size: 11px;
+  color: #475569;
+}
+
+.live-popup b {
+  font-size: 11px;
+}
+
+.live-popup a {
+  font-size: 11px;
+  color: #0284c7;
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.live-popup a:hover {
+  text-decoration: underline;
+}
+
+.leaflet-popup-content-wrapper {
+  border-radius: 12px;
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.2);
+}
+
+.leaflet-control-layers {
+  border: 1px solid rgba(13, 26, 41, 0.18) !important;
+  border-radius: 10px !important;
+}

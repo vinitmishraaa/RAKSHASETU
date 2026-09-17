@@ -1,14 +1,15 @@
 import type { VillageDetail } from "../../types";
 
-function Bar({ label, value, color }: { label: string; value: number; color: string }) {
+function Bar({ label, value, color }: { label: string; value?: number | null; color: string }) {
+  const v = typeof value === "number" && Number.isFinite(value) ? Math.min(Math.max(Math.round(value), 0), 100) : 0;
   return (
     <div style={{ marginBottom: 14 }}>
       <div style={{ display: "flex", justifyContent: "space-between", fontSize: 12.5, marginBottom: 5 }}>
         <span style={{ color: "var(--text-secondary)" }}>{label}</span>
-        <span className="mono" style={{ fontWeight: 600 }}>{value}</span>
+        <span className="mono" style={{ fontWeight: 600 }}>{v}</span>
       </div>
       <div style={{ height: 8, background: "var(--bg-inset)", borderRadius: 4, overflow: "hidden" }}>
-        <div style={{ width: `${value}%`, height: "100%", background: color, borderRadius: 4 }} />
+        <div style={{ width: `${v}%`, height: "100%", background: color, borderRadius: 4 }} />
       </div>
     </div>
   );

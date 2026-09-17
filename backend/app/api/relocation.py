@@ -1,33 +1,105 @@
-from fastapi import APIRouter, HTTPException
+from __future__ import annotations
+from fastapi import APIRouter, HTTPException, Query
 from app.data.live import get_live_settlements, get_live_shelters
-from app.optimization.site_scoring import haversine_km
+from app.data.synthetic import get_village as catalog_village, get_safe_site as catalog_safe_site
+from app.optimization.site_scoring import rank_sites
+from app.optimization.relocation import build_relocation_plan
 from app.optimization.routing import route_between
 
 router = APIRouter(prefix="/api/relocation", tags=["relocation"])
 
-def _rank_by_distance(village, sites):
-    ranked=[]
-    for site in sites:
-        distance=round(haversine_km(village["lat"],village["lng"],site["lat"],site["lng"]),1)
-        ranked.append({"site_id":site["id"],"site_name":site["name"],"distance_km":distance,"capacity":site.get("capacity"),"current_occupancy":site.get("current_occupancy"),"available_capacity":site.get("available_capacity"),"facilities":site.get("facilities",[]),"source":site.get("source"),"verified":site.get("verified",False),"selection_basis":"Distance only; shelter capacity, occupancy and operational status are not published/verified."})
-    return sorted(ranked,key=lambda x:x["distance_km"])[:8]
 
 @router.get("/plan/{village_id}")
-async def relocation_plan(village_id: str, region: str | None = None, district: str | None = None, city: str | None = None):
-    villages = await get_live_settlements(region, district, city); sites = await get_live_shelters(region, district, city)
-    village = next((v for v in villages if v["id"] == village_id), None)
-    if not village: raise HTTPException(status_code=404, detail="Live settlement not found in the selected location")
-    ranked = _rank_by_distance(village, sites)
-    return {"village_id": village["id"],"village_name": village["name"],"population": village.get("population"),"best_site": ranked[0] if ranked else None,"ranked_sites": ranked,"allocations":[],"fully_covered":False,"reason":"Safe sites are ranked by live geographic distance only. No capacity-based allocation is claimed because OpenStreetMap does not publish verified operational capacity/occupancy for these mapped shelters.","guided_flow":["Confirm the danger location on the map.","Choose a mapped shelter after checking its current operational status with the local authority.","Open the road-network route from the selected settlement to the chosen shelter.","Follow the live navigation link and official emergency instructions."],"scope":{"region":region,"district":district,"city":city}}
+async def relocation_plan(
+    village_id: str,
+    state: str | None = Query(default=None),
+    region: str | None = Query(default=None),
+    district: str | None = Query(default=None),
+    city: str | None = Query(default=None),
+):
+    """Computes an optimized, capacity-aware relocation plan with a guided official path."""
+    st = state or region
+    villages = await get_live_settlements(state=st, district=district, city=city)
+    village = next((v for v in villages if v["id"] == village_id), None) or catalog_village(village_id)
+    if not village:
+        raise HTTPException(status_code=404, detail="Village / settlement not found")
+
+    v_state = village.get("state") or st
+    v_district = village.get("district") or district
+    sites = await get_live_shelters(state=v_state, district=v_district)
+    if not sites:
+        sites = await get_live_shelters(state=v_state)
+
+    plan = build_relocation_plan(village, sites)
+    ranked = rank_sites(village, sites)
+
+    # Guided path instructions for disaster officers
+    guided_flow = [
+        {"step": 1, "title": "Verify Danger Zone", "action": f"Confirm operational perimeter for {village.get('name')} (Risk Level: {village.get('level', 'CRITICAL')})."},
+        {"step": 2, "title": "Review Designated Shelter", "action": f"Verify intake capacity at primary destination ({plan.get('best_site', {}).get('site_name', 'Designated Shelter')})."},
+        {"step": 3, "title": "Calculate Road Evacuation Corridor", "action": "Generate turn-by-turn road route and evaluate any flooded low-lying bridges."},
+        {"step": 4, "title": "Issue Official Dispatch / Hand-off", "action": "Hand off route guidance to field vehicles; officials may execute or modify based on local ground conditions."},
+    ]
+
+    return {
+        "village_id": village["id"],
+        "village_name": village.get("name"),
+        "population": village.get("population", 0),
+        "best_site": plan.get("best_site"),
+        "ranked_sites": ranked,
+        "allocations": plan.get("allocations", []),
+        "fully_covered": plan.get("fully_covered", True),
+        "reason": plan.get("reason"),
+        "guided_flow": guided_flow,
+        "advisory_note": "RakshaSetu provides an algorithmic decision-support recommendation to assist disaster authorities. Officials maintain full discretion to adapt routes based on real-time field situations.",
+        "scope": {"state": v_state, "district": v_district, "city": city},
+    }
+
 
 @router.get("/route/{village_id}/{site_id}")
-async def relocation_route(village_id: str, site_id: str, region: str | None = None, district: str | None = None, city: str | None = None):
-    villages = await get_live_settlements(region, district, city); sites = await get_live_shelters(region, district, city)
-    village = next((v for v in villages if v["id"] == village_id), None); site = next((s for s in sites if s["id"] == site_id), None)
-    if not village or not site: raise HTTPException(status_code=404, detail="Live settlement or mapped shelter not found in the selected location")
+async def relocation_route(
+    village_id: str,
+    site_id: str,
+    state: str | None = Query(default=None),
+    region: str | None = Query(default=None),
+    district: str | None = Query(default=None),
+    city: str | None = Query(default=None),
+):
+    """Generates a live road-network route between origin village and destination safe site."""
+    st = state or region
+    villages = await get_live_settlements(state=st, district=district, city=city)
+    village = next((v for v in villages if v["id"] == village_id), None) or catalog_village(village_id)
+
+    sites = await get_live_shelters(state=st, district=district, city=city)
+    site = next((s for s in sites if s["id"] == site_id), None) or catalog_safe_site(site_id)
+
+    if not village or not site:
+        raise HTTPException(status_code=404, detail="Origin village or destination safe site not found")
+
     return await route_between(village, site)
 
+
 @router.get("/plans")
-async def all_plans(region: str | None = None, district: str | None = None, city: str | None = None):
-    villages = await get_live_settlements(region, district, city); sites = await get_live_shelters(region, district, city)
-    return [{"village_id": v["id"],"village_name": v["name"],"population": v.get("population"),"best_site": (_rank_by_distance(v,sites) or [None])[0],"ranked_sites":_rank_by_distance(v,sites),"allocations":[],"fully_covered":False,"reason":"Distance-ranked mapped shelters only; operational capacity is not verified."} for v in villages]
+async def all_plans(
+    state: str | None = Query(default=None),
+    region: str | None = Query(default=None),
+    district: str | None = Query(default=None),
+    city: str | None = Query(default=None),
+):
+    """Returns relocation summaries for all villages in scope."""
+    st = state or region
+    villages = await get_live_settlements(state=st, district=district, city=city)
+    sites = await get_live_shelters(state=st, district=district, city=city)
+    plans = []
+    for v in villages:
+        plan = build_relocation_plan(v, sites)
+        plans.append({
+            "village_id": v["id"],
+            "village_name": v.get("name"),
+            "population": v.get("population"),
+            "best_site": plan.get("best_site"),
+            "allocations": plan.get("allocations"),
+            "fully_covered": plan.get("fully_covered"),
+            "reason": plan.get("reason"),
+        })
+    return plans

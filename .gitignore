@@ -13,6 +13,7 @@ dist/
 build/
 .vite/
 .npm/
+*.tsbuildinfo
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*

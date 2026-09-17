@@ -16,7 +16,7 @@ export default function RelocationBox({
       </h4>
       <div style={{ fontSize: 15, fontWeight: 700, marginBottom: 2 }}>{plan.village_name}</div>
       <div className="mono" style={{ fontSize: 12, color: "var(--text-muted)", marginBottom: 16 }}>
-        Population: {plan.population.toLocaleString()}
+        Population: {plan.population != null ? plan.population.toLocaleString() : "Not published"}
       </div>
 
       {best && (
@@ -36,7 +36,7 @@ export default function RelocationBox({
 
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginBottom: 14 }}>
             <Field label="Suitability" value={`${best.suitability}/100`} />
-            <Field label="Available capacity" value={best.available_capacity.toLocaleString()} />
+            <Field label="Available capacity" value={best.available_capacity != null ? best.available_capacity.toLocaleString() : "—"} />
             <Field label="Distance" value={`${best.distance_km} km`} />
             <Field label="Road access" value={best.road_access} />
           </div>

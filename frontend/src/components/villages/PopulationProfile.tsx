@@ -1,11 +1,11 @@
 import type { VillageDetail } from "../../types";
 
-function Stat({ label, value }: { label: string; value: number | string }) {
+function Stat({ label, value }: { label: string; value?: number | string | null }) {
   return (
     <div>
       <div style={{ fontSize: 11, color: "var(--text-muted)", marginBottom: 4 }}>{label}</div>
       <div className="mono" style={{ fontSize: 22, fontWeight: 700 }}>
-        {typeof value === "number" ? value.toLocaleString() : value}
+        {typeof value === "number" ? value.toLocaleString() : (value ?? "—")}
       </div>
     </div>
   );

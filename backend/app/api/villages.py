@@ -1,30 +1,54 @@
-from fastapi import APIRouter, HTTPException
-from app.data.live import get_live_settlements, enrich_settlements_with_weather
+from __future__ import annotations
+from fastapi import APIRouter, HTTPException, Query
+from app.data.live import get_live_settlements
+from app.data.synthetic import get_village as catalog_village
 
 router = APIRouter(prefix="/api/villages", tags=["villages"])
 
 
-async def _live(region: str | None = None, district: str | None = None, city: str | None = None):
-    settlements = await get_live_settlements(region, district, city)
-    return await enrich_settlements_with_weather(settlements)
-
-
 @router.get("")
-async def list_villages(region: str | None = None, state: str | None = None, district: str | None = None, city: str | None = None, level: str | None = None):
-    villages = await _live(state or region, district, city)
+async def list_villages(
+    state: str | None = Query(default=None),
+    region: str | None = Query(default=None),
+    district: str | None = Query(default=None),
+    city: str | None = Query(default=None),
+    level: str | None = Query(default=None),
+):
+    """Returns settlements for the selected state/district/city enriched with live data."""
+    st = state or region
+    villages = await get_live_settlements(state=st, district=district, city=city)
+
     if district:
-        villages = [v for v in villages if not v.get("district") or v.get("district", "").casefold() == district.casefold()]
+        villages = [v for v in villages if (v.get("district") or "").casefold() == district.strip().casefold()]
     if city:
-        villages = [v for v in villages if not v.get("city") or v.get("city", "").casefold() == city.casefold()]
+        villages = [v for v in villages if (v.get("city") or "").casefold() == city.strip().casefold()]
     if level:
-        villages = [v for v in villages if v.get("level", "").casefold() == level.casefold()]
+        villages = [v for v in villages if (v.get("level") or "").casefold() == level.strip().casefold()]
+
     return villages
 
 
 @router.get("/{village_id}")
-async def get_village(village_id: str, region: str | None = None, state: str | None = None, district: str | None = None, city: str | None = None):
-    villages = await _live(state or region, district, city)
+async def get_village(
+    village_id: str,
+    state: str | None = Query(default=None),
+    region: str | None = Query(default=None),
+    district: str | None = Query(default=None),
+    city: str | None = Query(default=None),
+):
+    """Returns single settlement details enriched with reasons, history, and rainfall trend."""
+    st = state or region
+    # Look up in scoped live settlements first
+    villages = await get_live_settlements(state=st, district=district, city=city)
     village = next((v for v in villages if v["id"] == village_id), None)
+
     if not village:
-        raise HTTPException(status_code=404, detail="Live settlement not found")
-    return {**village,"reasons":["Risk indicator is calculated from the live weather and USGS earthquake observations returned with this record.","Population is shown only when an OpenStreetMap population tag is available."],"recommended_action":"Use official government alerts and local authorities for operational decisions.","history":[],"rainfall_trend":[],"data_status":"live-open-data"}
+        # Fallback to catalog
+        cat_v = catalog_village(village_id)
+        if not cat_v:
+            raise HTTPException(status_code=404, detail=f"Settlement '{village_id}' not found")
+        # Enrich the single record
+        enriched = await get_live_settlements(state=cat_v.get("state"), district=cat_v.get("district"))
+        village = next((v for v in enriched if v["id"] == village_id), None) or cat_v
+
+    return village
