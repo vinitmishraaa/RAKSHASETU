@@ -1,56 +1,41 @@
-from fastapi import APIRouter
-from app.data import synthetic
-from app.risk_engine.scoring import compute_risk
-from app.risk_engine.classification import classify
-from app.optimization.relocation import build_relocation_plan
+from fastapi import APIRouter, Query
+from app.data.open_data import get_gdacs_events, get_sachet_alerts
 
 router = APIRouter(prefix="/api/alerts", tags=["alerts"])
 
 
-def make_alert(village, level, score, message, action, source="RakshaSetu risk engine"):
+@router.get("")
+async def list_alerts(region: str | None = Query(default=None)):
+    """Return official/open live alert records only; no synthetic alert generation."""
+    alerts = []
+    sources = []
+    try:
+        sachet = await get_sachet_alerts(region)
+        alerts.extend(sachet.get("alerts", []))
+        sources.append({"name": "SACHET · NDMA", "status": "live", "count": sachet.get("count", 0)})
+    except Exception as exc:
+        sources.append({"name": "SACHET · NDMA", "status": f"unavailable: {str(exc)[:120]}"})
+    try:
+        gdacs = await get_gdacs_events(region)
+        alerts.extend(gdacs.get("events", []))
+        sources.append({"name": "GDACS", "status": "live", "count": gdacs.get("count", 0)})
+    except Exception as exc:
+        sources.append({"name": "GDACS", "status": f"unavailable: {str(exc)[:120]}"})
     return {
-        "village_id": village["id"],
-        "village_name": village["name"],
-        "district": village.get("district"),
-        "state": village.get("state"),
-        "lat": village.get("lat"),
-        "lng": village.get("lng"),
-        "population": village.get("population"),
-        "level": level,
-        "risk_score": score,
-        "message": message,
-        "action": action,
-        "source": source,
+        "region": region or "India",
+        "updated_at": __import__("datetime").datetime.now(__import__("datetime").timezone.utc).isoformat(),
+        "alerts": alerts,
+        "count": len(alerts),
+        "sources": sources,
+        "note": "Official/open live feeds. Alert severity and wording are sourced from providers; RakshaSetu does not invent evacuation orders.",
     }
 
 
-@router.get("")
-def list_alerts():
-    alerts = []
-    sites = synthetic.get_safe_sites()
-    for village in synthetic.get_villages():
-        indicators = compute_risk(village)
-        cls = classify(indicators["risk_score"])
-        score = indicators["risk_score"]
-        location = f"{village['name']}, {village.get('district', '')}, {village.get('state', '')}"
-
-        if cls["level"] == "CRITICAL":
-            alerts.append(make_alert(village, "CRITICAL", score, f"{location} has entered CRITICAL risk category. Immediate relocation assessment recommended.", "Assess relocation now"))
-        elif cls["level"] == "HIGH":
-            alerts.append(make_alert(village, "HIGH", score, f"{location} is at HIGH risk. Priority monitoring and readiness advised.", "Increase field monitoring"))
-
-        plan = build_relocation_plan(village, sites)
-        if not plan["fully_covered"] and cls["level"] in ("CRITICAL", "HIGH"):
-            alerts.append(make_alert(village, "WARNING", score, f"{location}: available safe-site capacity cannot fully absorb the population in one location.", "Split allocation across safe sites", "Relocation capacity engine"))
-
-    alerts.sort(key=lambda a: (a["level"] != "CRITICAL", a["level"] != "HIGH", -a["risk_score"]))
-    return alerts
-
-
 @router.get("/summary")
-def alerts_summary():
-    alerts = list_alerts()
-    summary = {"CRITICAL": 0, "HIGH": 0, "WARNING": 0}
-    for a in alerts:
-        summary[a["level"]] = summary.get(a["level"], 0) + 1
-    return summary
+async def alerts_summary(region: str | None = Query(default=None)):
+    data = await list_alerts(region)
+    summary = {"CRITICAL": 0, "HIGH": 0, "MODERATE": 0, "LOW": 0}
+    for alert in data.get("alerts", []):
+        level = alert.get("severity", "LOW")
+        summary[level] = summary.get(level, 0) + 1
+    return {"region": data.get("region"), "summary": summary, "count": data.get("count", 0), "sources": data.get("sources", [])}
