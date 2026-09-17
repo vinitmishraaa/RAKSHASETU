@@ -1,6 +1,8 @@
 import type { Village, VillageDetail, SafeSite, RelocationPlan, Alert, RiskSummary, LiveHazardFeed } from "../types";
 
 const BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:8000";
+const savedScope = () => localStorage.getItem("rakshasetu_region") || "";
+const savedDistrict = () => localStorage.getItem("rakshasetu_district") || "";
 
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
   const res = await fetch(`${BASE_URL}${path}`, { headers: { "Content-Type": "application/json" }, ...init });
@@ -16,21 +18,35 @@ export const api = {
   villages: {
     list: (params?: { state?: string; region?: string; district?: string; level?: string }) => {
       const q = new URLSearchParams();
-      if (params?.state || params?.region) q.set("state", params.state || params.region || "");
-      if (params?.district) q.set("district", params.district);
+      const state = params?.state || params?.region || savedScope();
+      const district = params?.district || (params ? "" : savedDistrict());
+      if (state && state !== "India") q.set("state", state);
+      if (district) q.set("district", district);
       if (params?.level) q.set("level", params.level);
       return request<Village[]>(`/api/villages${q.toString() ? `?${q.toString()}` : ""}`);
     },
-    get: (id: string, params?: { state?: string; district?: string }) => request<VillageDetail>(`/api/villages/${id}?${new URLSearchParams(params as Record<string, string>).toString()}`),
+    get: (id: string, params?: { state?: string; district?: string }) => {
+      const q = new URLSearchParams();
+      if (params?.state || savedScope()) q.set("state", params?.state || savedScope());
+      if (params?.district || savedDistrict()) q.set("district", params?.district || savedDistrict());
+      return request<VillageDetail>(`/api/villages/${id}${q.toString() ? `?${q.toString()}` : ""}`);
+    },
   },
   safeSites: {
     list: (params?: { state?: string; region?: string; district?: string }) => {
       const q = new URLSearchParams();
-      if (params?.state || params?.region) q.set("state", params.state || params.region || "");
-      if (params?.district) q.set("district", params.district);
+      const state = params?.state || params?.region || savedScope();
+      const district = params?.district || (params ? "" : savedDistrict());
+      if (state && state !== "India") q.set("state", state);
+      if (district) q.set("district", district);
       return request<SafeSite[]>(`/api/safesites${q.toString() ? `?${q.toString()}` : ""}`);
     },
-    rankFor: (villageId: string, params?: { state?: string; district?: string }) => request<any>(`/api/safesites/rank-for/${villageId}?${new URLSearchParams(params as Record<string, string>).toString()}`),
+    rankFor: (villageId: string, params?: { state?: string; district?: string }) => {
+      const q = new URLSearchParams();
+      if (params?.state || savedScope()) q.set("state", params?.state || savedScope());
+      if (params?.district || savedDistrict()) q.set("district", params?.district || savedDistrict());
+      return request<any>(`/api/safesites/rank-for/${villageId}${q.toString() ? `?${q.toString()}` : ""}`);
+    },
   },
   relocation: {
     plan: (villageId: string) => request<RelocationPlan>(`/api/relocation/plan/${villageId}`),
