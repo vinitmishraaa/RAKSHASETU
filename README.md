@@ -69,11 +69,11 @@ RakshaSetu connects out-of-the-box to live public APIs without requiring paid ke
 
 ### 6. Officer Alert Desk & Emergency Escalation
 - **Designated Response Officers**:
-  1. **Anushko Adhikary** (`anushkoadhikary8918@gmail.com` | `+91 8918552039`)
-  2. **Medha Mallick** (`medha.mallick2020@gmail.com` | `+91 9007564988`)
-  3. **Ayan Acharya** (`ayanacharya06@gmail.com` | `+91 9433172520`)
-  4. **Soumyadeep Palit** (`soumyadeeppalit546@gmail.com` | `+91 8697453997`)
-  5. **Prithiwi Barui** (`prithiwibarui@gmail.com` | `+91 9748069930`)
+  1. **Anushko Adhikary** (`anushkoadhikary8918@gmail.com`)
+  2. **Medha Mallick** (`medha.mallick2020@gmail.com`)
+  3. **Ayan Acharya** (`ayanacharya06@gmail.com`)
+  4. **Soumyadeep Palit** (`soumyadeeppalit546@gmail.com` )
+  5. **Prithiwi Barui** (`prithiwibarui@gmail.com`)
   - **Admin / Dispatch Source**: `mishravinit923@gmail.com`
 - **Actionable Dispatch**: Instant **Email** (`mailto:`) and **SMS** (`sms:`) triggers pre-populated with location coordinates, alert severity, and recommended response actions.
 - **Siren Audio Test**: Dual-tone emergency siren generator powered by the Web Audio API (`sawtooth` oscillator alternating between 720 Hz and 420 Hz).
