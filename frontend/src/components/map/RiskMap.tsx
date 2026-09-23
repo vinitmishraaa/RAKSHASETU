@@ -195,7 +195,12 @@ export default function RiskMap({
             }}
           >
             <Tooltip direction="top" offset={[0, -8]}>
-              <div style={{ fontSize: "12px", lineHeight: "1.4" }}>
+              <div style={{ fontSize: "12px", lineHeight: "1.4", minWidth: "180px" }}>
+                {v.is_red_zone && (
+                  <div style={{ color: "#ff8095", fontWeight: 800, fontSize: "10px", marginBottom: "2px" }}>
+                    ⚠️ MULTI-HAZARD RED ZONE
+                  </div>
+                )}
                 <strong>{v.name}</strong>
                 <br />
                 <span style={{ color: "#64748b" }}>
@@ -206,7 +211,17 @@ export default function RiskMap({
                   Risk Index: {v.risk_score}/100 ({v.level})
                 </b>
                 <br />
+                <span style={{ color: "#f5c94a", fontWeight: 700, fontSize: "11px" }}>
+                  Priority: {v.relocation_horizon || (v.level === "CRITICAL" ? "0–48 Hours (Immediate)" : "1–3 Months")}
+                </span>
+                <br />
                 <span>Population: {v.population != null ? v.population.toLocaleString() : "—"}</span>
+                {v.primary_hazard_trigger && (
+                  <>
+                    <br />
+                    <small style={{ color: "#94a3b8" }}>Trigger: {v.primary_hazard_trigger}</small>
+                  </>
+                )}
                 {v.weather?.precipitation_mm ? (
                   <>
                     <br />

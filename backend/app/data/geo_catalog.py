@@ -145,37 +145,67 @@ DETAILED_VILLAGES: list[dict[str, Any]] = [
         "id": "WB-S24-001", "name": "Gosaba Char", "district": "South 24 Parganas", "state": "West Bengal", "city": "Gosaba",
         "lat": 22.1667, "lng": 88.8000, "population": 3400, "households": 720, "children": 560, "elderly": 380, "other_vulnerable": 210,
         "elevation_m": 2.1, "distance_river_km": 0.2, "distance_road_km": 6.8, "embankment_condition": 0.32,
-        "rainfall_mm_month": 340, "flood_hazard": 88, "landslide_hazard": 4, "cyclone_hazard": 92
+        "rainfall_mm_month": 340, "flood_hazard": 88, "landslide_hazard": 4, "cyclone_hazard": 92,
+        "coastal_erosion_hazard": 94, "cloudburst_hazard": 28,
+        "primary_hazard_trigger": "Severe Coastal Surge & Embankment Erosion",
+        "is_red_zone": True,
+        "red_zone_declaration": "DECLARED MULTI-HAZARD RED ZONE — UNSUITABLE FOR PERMANENT HABITATION",
+        "relocation_tier": "IMMEDIATE", "relocation_horizon": "0–48 Hours",
     },
     {
         "id": "WB-S24-002", "name": "Kultali Basti", "district": "South 24 Parganas", "state": "West Bengal", "city": "Kultali",
         "lat": 21.9833, "lng": 88.6667, "population": 2850, "households": 590, "children": 490, "elderly": 310, "other_vulnerable": 180,
         "elevation_m": 1.7, "distance_river_km": 0.15, "distance_road_km": 11.2, "embankment_condition": 0.25,
-        "rainfall_mm_month": 360, "flood_hazard": 94, "landslide_hazard": 3, "cyclone_hazard": 95
+        "rainfall_mm_month": 360, "flood_hazard": 94, "landslide_hazard": 3, "cyclone_hazard": 95,
+        "coastal_erosion_hazard": 96, "cloudburst_hazard": 32,
+        "primary_hazard_trigger": "Deltaic Tidal Inundation & Embankment Failure",
+        "is_red_zone": True,
+        "red_zone_declaration": "DECLARED MULTI-HAZARD RED ZONE — UNSUITABLE FOR PERMANENT HABITATION",
+        "relocation_tier": "IMMEDIATE", "relocation_horizon": "0–48 Hours",
     },
     {
         "id": "WB-S24-003", "name": "Baruipur Purba", "district": "South 24 Parganas", "state": "West Bengal", "city": "Baruipur",
         "lat": 22.3600, "lng": 88.4300, "population": 5200, "households": 1120, "children": 780, "elderly": 520, "other_vulnerable": 310,
         "elevation_m": 6.8, "distance_river_km": 3.2, "distance_road_km": 0.8, "embankment_condition": 0.72,
-        "rainfall_mm_month": 220, "flood_hazard": 38, "landslide_hazard": 2, "cyclone_hazard": 35
+        "rainfall_mm_month": 220, "flood_hazard": 38, "landslide_hazard": 2, "cyclone_hazard": 35,
+        "coastal_erosion_hazard": 12, "cloudburst_hazard": 15,
+        "primary_hazard_trigger": "Moderate Monsoon Waterlogging",
+        "is_red_zone": False,
+        "red_zone_declaration": "TRANSITIONAL SAFE HABITATION ZONE",
+        "relocation_tier": "MEDIUM_TERM", "relocation_horizon": "6–12 Months",
     },
     {
         "id": "WB-S24-004", "name": "Canning Dakshin", "district": "South 24 Parganas", "state": "West Bengal", "city": "Canning",
         "lat": 22.3100, "lng": 88.6600, "population": 2600, "households": 540, "children": 410, "elderly": 280, "other_vulnerable": 160,
         "elevation_m": 4.5, "distance_river_km": 1.4, "distance_road_km": 2.2, "embankment_condition": 0.58,
-        "rainfall_mm_month": 280, "flood_hazard": 62, "landslide_hazard": 3, "cyclone_hazard": 68
+        "rainfall_mm_month": 280, "flood_hazard": 62, "landslide_hazard": 3, "cyclone_hazard": 68,
+        "coastal_erosion_hazard": 58, "cloudburst_hazard": 20,
+        "primary_hazard_trigger": "River Matla Tidal Inundation",
+        "is_red_zone": False,
+        "red_zone_declaration": "HIGH VULNERABILITY BUFFER ZONE",
+        "relocation_tier": "SHORT_TERM", "relocation_horizon": "1–3 Months",
     },
     {
         "id": "WB-S24-005", "name": "Diamond Harbour Coastal Zone", "district": "South 24 Parganas", "state": "West Bengal", "city": "Diamond Harbour",
         "lat": 22.1900, "lng": 88.2000, "population": 4800, "households": 980, "children": 720, "elderly": 490, "other_vulnerable": 290,
         "elevation_m": 5.2, "distance_river_km": 0.4, "distance_road_km": 1.1, "embankment_condition": 0.65,
-        "rainfall_mm_month": 290, "flood_hazard": 65, "landslide_hazard": 2, "cyclone_hazard": 76
+        "rainfall_mm_month": 290, "flood_hazard": 65, "landslide_hazard": 2, "cyclone_hazard": 76,
+        "coastal_erosion_hazard": 72, "cloudburst_hazard": 22,
+        "primary_hazard_trigger": "Hooghly River Estuary Surge & Erosion",
+        "is_red_zone": False,
+        "red_zone_declaration": "MONITORED ESTUARINE BUFFER",
+        "relocation_tier": "SHORT_TERM", "relocation_horizon": "1–3 Months",
     },
     {
         "id": "WB-S24-006", "name": "Kakdwip Sagar Island Edge", "district": "South 24 Parganas", "state": "West Bengal", "city": "Kakdwip",
         "lat": 21.8700, "lng": 88.1800, "population": 3100, "households": 630, "children": 520, "elderly": 340, "other_vulnerable": 190,
         "elevation_m": 2.4, "distance_river_km": 0.3, "distance_road_km": 8.5, "embankment_condition": 0.38,
-        "rainfall_mm_month": 350, "flood_hazard": 89, "landslide_hazard": 2, "cyclone_hazard": 93
+        "rainfall_mm_month": 350, "flood_hazard": 89, "landslide_hazard": 2, "cyclone_hazard": 93,
+        "coastal_erosion_hazard": 92, "cloudburst_hazard": 25,
+        "primary_hazard_trigger": "Severe Bay of Bengal Wave Erosion & Surge",
+        "is_red_zone": True,
+        "red_zone_declaration": "DECLARED MULTI-HAZARD RED ZONE — UNSUITABLE FOR PERMANENT HABITATION",
+        "relocation_tier": "IMMEDIATE", "relocation_horizon": "0–48 Hours",
     },
 
     # West Bengal - North 24 Parganas
@@ -183,19 +213,34 @@ DETAILED_VILLAGES: list[dict[str, Any]] = [
         "id": "WB-N24-001", "name": "Sandeshkhali Basti", "district": "North 24 Parganas", "state": "West Bengal", "city": "Sandeshkhali",
         "lat": 22.3667, "lng": 88.8500, "population": 3600, "households": 740, "children": 580, "elderly": 390, "other_vulnerable": 220,
         "elevation_m": 3.2, "distance_river_km": 0.8, "distance_road_km": 4.5, "embankment_condition": 0.48,
-        "rainfall_mm_month": 295, "flood_hazard": 72, "landslide_hazard": 2, "cyclone_hazard": 70
+        "rainfall_mm_month": 295, "flood_hazard": 72, "landslide_hazard": 2, "cyclone_hazard": 70,
+        "coastal_erosion_hazard": 68, "cloudburst_hazard": 20,
+        "primary_hazard_trigger": "Tidal Riverbank Breach & Inundation",
+        "is_red_zone": False,
+        "red_zone_declaration": "HIGH VULNERABILITY BUFFER ZONE",
+        "relocation_tier": "SHORT_TERM", "relocation_horizon": "1–3 Months",
     },
     {
         "id": "WB-N24-002", "name": "Hingalganj Border Char", "district": "North 24 Parganas", "state": "West Bengal", "city": "Hingalganj",
         "lat": 22.4333, "lng": 88.9333, "population": 2950, "households": 610, "children": 470, "elderly": 320, "other_vulnerable": 190,
         "elevation_m": 2.0, "distance_river_km": 0.25, "distance_road_km": 9.4, "embankment_condition": 0.30,
-        "rainfall_mm_month": 320, "flood_hazard": 90, "landslide_hazard": 3, "cyclone_hazard": 82
+        "rainfall_mm_month": 320, "flood_hazard": 90, "landslide_hazard": 3, "cyclone_hazard": 82,
+        "coastal_erosion_hazard": 88, "cloudburst_hazard": 24,
+        "primary_hazard_trigger": "Raimangal River Estuary Breach",
+        "is_red_zone": True,
+        "red_zone_declaration": "DECLARED MULTI-HAZARD RED ZONE — UNSUITABLE FOR PERMANENT HABITATION",
+        "relocation_tier": "IMMEDIATE", "relocation_horizon": "0–48 Hours",
     },
     {
         "id": "WB-N24-003", "name": "Barasat Sadar Ward", "district": "North 24 Parganas", "state": "West Bengal", "city": "Barasat",
         "lat": 22.7230, "lng": 88.4800, "population": 6500, "households": 1400, "children": 890, "elderly": 620, "other_vulnerable": 350,
         "elevation_m": 9.5, "distance_river_km": 5.5, "distance_road_km": 0.2, "embankment_condition": 0.85,
-        "rainfall_mm_month": 180, "flood_hazard": 25, "landslide_hazard": 1, "cyclone_hazard": 30
+        "rainfall_mm_month": 180, "flood_hazard": 25, "landslide_hazard": 1, "cyclone_hazard": 30,
+        "coastal_erosion_hazard": 5, "cloudburst_hazard": 10,
+        "primary_hazard_trigger": "Low Hazard Settlement Core",
+        "is_red_zone": False,
+        "red_zone_declaration": "SAFE HABITATION ZONE",
+        "relocation_tier": "MEDIUM_TERM", "relocation_horizon": "6–12 Months",
     },
 
     # West Bengal - Kolkata
@@ -203,27 +248,47 @@ DETAILED_VILLAGES: list[dict[str, Any]] = [
         "id": "WB-KOL-001", "name": "Behala Waterlogging Ward", "district": "Kolkata", "state": "West Bengal", "city": "Behala",
         "lat": 22.4988, "lng": 88.3120, "population": 8200, "households": 1900, "children": 1200, "elderly": 850, "other_vulnerable": 450,
         "elevation_m": 5.5, "distance_river_km": 1.2, "distance_road_km": 0.1, "embankment_condition": 0.80,
-        "rainfall_mm_month": 230, "flood_hazard": 64, "landslide_hazard": 1, "cyclone_hazard": 45
+        "rainfall_mm_month": 230, "flood_hazard": 64, "landslide_hazard": 1, "cyclone_hazard": 45,
+        "coastal_erosion_hazard": 8, "cloudburst_hazard": 30,
+        "primary_hazard_trigger": "Urban Drainage Congestion & Pluvial Flooding",
+        "is_red_zone": False,
+        "red_zone_declaration": "MONITORED URBAN DRAINAGE BASIN",
+        "relocation_tier": "SHORT_TERM", "relocation_horizon": "1–3 Months",
     },
     {
         "id": "WB-KOL-002", "name": "Cossipore Riverfront", "district": "Kolkata", "state": "West Bengal", "city": "Cossipore",
         "lat": 22.6200, "lng": 88.3700, "population": 7100, "households": 1650, "children": 980, "elderly": 710, "other_vulnerable": 380,
         "elevation_m": 6.8, "distance_river_km": 0.3, "distance_road_km": 0.2, "embankment_condition": 0.75,
-        "rainfall_mm_month": 210, "flood_hazard": 52, "landslide_hazard": 1, "cyclone_hazard": 40
+        "rainfall_mm_month": 210, "flood_hazard": 52, "landslide_hazard": 1, "cyclone_hazard": 40,
+        "coastal_erosion_hazard": 15, "cloudburst_hazard": 18,
+        "primary_hazard_trigger": "River Hooghly High Tide Overflow",
+        "is_red_zone": False,
+        "red_zone_declaration": "RIVERINE BUFFER ZONE",
+        "relocation_tier": "MEDIUM_TERM", "relocation_horizon": "6–12 Months",
     },
 
-    # West Bengal - Darjeeling (Himalayan landslide-prone)
+    # West Bengal - Darjeeling (Himalayan landslide & cloudburst prone)
     {
         "id": "WB-DAR-001", "name": "Mirik Slopes Settlement", "district": "Darjeeling", "state": "West Bengal", "city": "Mirik",
         "lat": 26.8900, "lng": 88.1800, "population": 2200, "households": 460, "children": 340, "elderly": 220, "other_vulnerable": 120,
         "elevation_m": 1490.0, "distance_river_km": 0.8, "distance_road_km": 3.4, "embankment_condition": 0.40,
-        "rainfall_mm_month": 410, "flood_hazard": 18, "landslide_hazard": 92, "cyclone_hazard": 15
+        "rainfall_mm_month": 410, "flood_hazard": 18, "landslide_hazard": 92, "cyclone_hazard": 15,
+        "coastal_erosion_hazard": 0, "cloudburst_hazard": 91,
+        "primary_hazard_trigger": "Active Landslide Scarp & High-Altitude Cloudburst",
+        "is_red_zone": True,
+        "red_zone_declaration": "DECLARED MULTI-HAZARD RED ZONE — UNSUITABLE FOR PERMANENT HABITATION",
+        "relocation_tier": "IMMEDIATE", "relocation_horizon": "0–48 Hours",
     },
     {
         "id": "WB-DAR-002", "name": "Kurseong Upper Ridge", "district": "Darjeeling", "state": "West Bengal", "city": "Kurseong",
         "lat": 26.8800, "lng": 88.2800, "population": 3400, "households": 720, "children": 480, "elderly": 350, "other_vulnerable": 180,
         "elevation_m": 1458.0, "distance_river_km": 1.2, "distance_road_km": 1.8, "embankment_condition": 0.50,
-        "rainfall_mm_month": 390, "flood_hazard": 15, "landslide_hazard": 88, "cyclone_hazard": 12
+        "rainfall_mm_month": 390, "flood_hazard": 15, "landslide_hazard": 88, "cyclone_hazard": 12,
+        "coastal_erosion_hazard": 0, "cloudburst_hazard": 84,
+        "primary_hazard_trigger": "Debris Flow & Mountain Slope Failure",
+        "is_red_zone": True,
+        "red_zone_declaration": "DECLARED MULTI-HAZARD RED ZONE — UNSUITABLE FOR PERMANENT HABITATION",
+        "relocation_tier": "IMMEDIATE", "relocation_horizon": "0–48 Hours",
     },
 
     # West Bengal - Howrah
@@ -231,7 +296,12 @@ DETAILED_VILLAGES: list[dict[str, Any]] = [
         "id": "WB-HOW-001", "name": "Uluberia Riverside", "district": "Howrah", "state": "West Bengal", "city": "Uluberia",
         "lat": 22.4700, "lng": 88.1100, "population": 4600, "households": 950, "children": 690, "elderly": 460, "other_vulnerable": 250,
         "elevation_m": 5.1, "distance_river_km": 0.4, "distance_road_km": 0.9, "embankment_condition": 0.60,
-        "rainfall_mm_month": 240, "flood_hazard": 66, "landslide_hazard": 1, "cyclone_hazard": 52
+        "rainfall_mm_month": 240, "flood_hazard": 66, "landslide_hazard": 1, "cyclone_hazard": 52,
+        "coastal_erosion_hazard": 25, "cloudburst_hazard": 18,
+        "primary_hazard_trigger": "Damodar/Hooghly Riverbank Inundation",
+        "is_red_zone": False,
+        "red_zone_declaration": "MONITORED RIVERINE BUFFER",
+        "relocation_tier": "SHORT_TERM", "relocation_horizon": "1–3 Months",
     },
 
     # Bihar - Patna
@@ -239,7 +309,12 @@ DETAILED_VILLAGES: list[dict[str, Any]] = [
         "id": "BR-PAT-001", "name": "Danapur Ganga Catchment", "district": "Patna", "state": "Bihar", "city": "Danapur",
         "lat": 25.6300, "lng": 85.0400, "population": 4100, "households": 840, "children": 680, "elderly": 410, "other_vulnerable": 240,
         "elevation_m": 52.0, "distance_river_km": 0.3, "distance_road_km": 1.2, "embankment_condition": 0.52,
-        "rainfall_mm_month": 260, "flood_hazard": 82, "landslide_hazard": 2, "cyclone_hazard": 10
+        "rainfall_mm_month": 260, "flood_hazard": 82, "landslide_hazard": 2, "cyclone_hazard": 10,
+        "coastal_erosion_hazard": 0, "cloudburst_hazard": 35,
+        "primary_hazard_trigger": "Ganga River Basin Flooding & Silt Erosion",
+        "is_red_zone": True,
+        "red_zone_declaration": "DECLARED MULTI-HAZARD RED ZONE — UNSUITABLE FOR PERMANENT HABITATION",
+        "relocation_tier": "IMMEDIATE", "relocation_horizon": "0–48 Hours",
     },
 
     # Odisha - Puri
@@ -247,15 +322,25 @@ DETAILED_VILLAGES: list[dict[str, Any]] = [
         "id": "OR-PUR-001", "name": "Konark Coastal Habitation", "district": "Puri", "state": "Odisha", "city": "Konark",
         "lat": 19.8876, "lng": 86.0945, "population": 3100, "households": 640, "children": 490, "elderly": 320, "other_vulnerable": 180,
         "elevation_m": 4.8, "distance_river_km": 0.8, "distance_road_km": 1.4, "embankment_condition": 0.55,
-        "rainfall_mm_month": 310, "flood_hazard": 76, "landslide_hazard": 2, "cyclone_hazard": 89
+        "rainfall_mm_month": 310, "flood_hazard": 76, "landslide_hazard": 2, "cyclone_hazard": 89,
+        "coastal_erosion_hazard": 86, "cloudburst_hazard": 20,
+        "primary_hazard_trigger": "Coastal Cyclone Surge & Shoreline Inundation",
+        "is_red_zone": True,
+        "red_zone_declaration": "DECLARED MULTI-HAZARD RED ZONE — UNSUITABLE FOR PERMANENT HABITATION",
+        "relocation_tier": "IMMEDIATE", "relocation_horizon": "0–48 Hours",
     },
 
-    # Sikkim - Gangtok
+    # Sikkim - Gangtok (Cloudburst & Landslide zone)
     {
         "id": "SK-GAN-001", "name": "Ranipool Slope Zone", "district": "Gangtok", "state": "Sikkim", "city": "Ranipool",
         "lat": 27.2900, "lng": 88.5900, "population": 2100, "households": 430, "children": 320, "elderly": 210, "other_vulnerable": 110,
         "elevation_m": 920.0, "distance_river_km": 0.2, "distance_road_km": 0.8, "embankment_condition": 0.45,
-        "rainfall_mm_month": 380, "flood_hazard": 45, "landslide_hazard": 94, "cyclone_hazard": 8
+        "rainfall_mm_month": 380, "flood_hazard": 45, "landslide_hazard": 94, "cyclone_hazard": 8,
+        "coastal_erosion_hazard": 0, "cloudburst_hazard": 96,
+        "primary_hazard_trigger": "Teesta Tributary Flash Cloudburst & Slope Collapse",
+        "is_red_zone": True,
+        "red_zone_declaration": "DECLARED MULTI-HAZARD RED ZONE — UNSUITABLE FOR PERMANENT HABITATION",
+        "relocation_tier": "IMMEDIATE", "relocation_horizon": "0–48 Hours",
     },
 ]
 
@@ -346,9 +431,37 @@ def _generate_synthetic_villages_for_district(state: str, district: str, count: 
         d_lng = rng.uniform(-0.18, 0.18)
         pop = rng.randint(1800, 5800)
 
-        flood = rng.randint(45, 95) if is_coastal else (rng.randint(10, 45) if is_himalayan else rng.randint(25, 75))
+        flood = rng.randint(55, 95) if is_coastal else (rng.randint(10, 45) if is_himalayan else rng.randint(25, 75))
         cyclone = rng.randint(55, 95) if is_coastal else rng.randint(5, 30)
         landslide = rng.randint(65, 96) if is_himalayan else rng.randint(2, 15)
+        coastal_erosion = rng.randint(60, 95) if is_coastal else rng.randint(0, 12)
+        cloudburst = rng.randint(65, 95) if is_himalayan else rng.randint(5, 35)
+
+        if is_himalayan:
+            trigger = "Active Mountain Slope Scarp & High-Altitude Cloudburst"
+        elif is_coastal:
+            trigger = "Severe Coastal Inundation & Embankment Erosion"
+        elif flood >= 70:
+            trigger = "Riverine Inundation & Low-Lying Drainage Congestion"
+        else:
+            trigger = "Monsoon Precipitation Vulnerability"
+
+        max_hz = max(flood, cyclone, landslide, coastal_erosion, cloudburst)
+        if max_hz >= 75:
+            tier = "IMMEDIATE"
+            horizon = "0–48 Hours"
+            is_red = True
+            declaration = "DECLARED MULTI-HAZARD RED ZONE — UNSUITABLE FOR PERMANENT HABITATION"
+        elif max_hz >= 50:
+            tier = "SHORT_TERM"
+            horizon = "1–3 Months"
+            is_red = False
+            declaration = "HIGH VULNERABILITY BUFFER ZONE"
+        else:
+            tier = "MEDIUM_TERM"
+            horizon = "6–12 Months"
+            is_red = False
+            declaration = "MONITORED SETTLEMENT"
 
         elevation = round(rng.uniform(1100, 2400) if is_himalayan else (rng.uniform(1.8, 8.5) if is_coastal else rng.uniform(40, 250)), 1)
         river_dist = round(rng.uniform(0.15, 4.5), 2)
@@ -376,6 +489,13 @@ def _generate_synthetic_villages_for_district(state: str, district: str, count: 
             "flood_hazard": flood,
             "landslide_hazard": landslide,
             "cyclone_hazard": cyclone,
+            "coastal_erosion_hazard": coastal_erosion,
+            "cloudburst_hazard": cloudburst,
+            "primary_hazard_trigger": trigger,
+            "is_red_zone": is_red,
+            "red_zone_declaration": declaration,
+            "relocation_tier": tier,
+            "relocation_horizon": horizon,
         })
     return villages
 

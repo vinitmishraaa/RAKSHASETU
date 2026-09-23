@@ -49,10 +49,10 @@ export default function SafeSites() {
     <div className="page-shell">
       <div className="page-hero">
         <div>
-          <span className="eyebrow">MAPPED EMERGENCY SHELTER INFRASTRUCTURE</span>
-          <h2>Relocation Centres & Safe Shelters</h2>
+          <span className="eyebrow">SIH PS-26191 · CARRYING CAPACITY ASSESSMENT & ALTERNATIVE SITES</span>
+          <h2>Relocation Centres & Safe Alternative Sites</h2>
           <p>
-            Real shelter locations mapped from open geospatial sources. Operational capacity and verified status are displayed transparently.
+            Dynamically assesses absorption headroom and carrying capacity stress of designated safe zones. Mitigates secondary disaster vulnerability and prevents post-evacuation overcrowding.
           </p>
         </div>
         <select value={state} onChange={(e) => changeState(e.target.value)}>
@@ -105,22 +105,60 @@ export default function SafeSites() {
 
             <div className="safe-metric-grid">
               <span>
-                <small>Capacity</small>
+                <small>Total Capacity</small>
                 <b>{value(s.capacity)}</b>
               </span>
               <span>
-                <small>Occupancy</small>
+                <small>Current Occupancy</small>
                 <b>{value(s.current_occupancy)}</b>
               </span>
               <span>
-                <small>Hazard clearance</small>
-                <b>{value(s.hazard_risk)}</b>
+                <small>Absorption Headroom</small>
+                <b style={{ color: "var(--safe)" }}>{value(s.available_capacity ?? (s.capacity && s.current_occupancy != null ? Math.max(0, s.capacity - s.current_occupancy) : null))}</b>
               </span>
               <span>
-                <small>Infrastructure</small>
-                <b>{value(s.infrastructure_score)}</b>
+                <small>Hazard Clearance</small>
+                <b>{s.hazard_risk != null ? `${s.hazard_risk}/100` : "Verified Clear"}</b>
               </span>
             </div>
+
+            {/* Carrying Capacity & Overcrowding Stress Gauge */}
+            {s.capacity != null && (
+              <div className="safe-occupancy" style={{ margin: "10px 0" }}>
+                {(() => {
+                  const occ = s.current_occupancy || 0;
+                  const cap = s.capacity || 1;
+                  const utilPct = Math.min(100, Math.round((occ / cap) * 100));
+                  const isHighStress = utilPct >= 85;
+                  const isModStress = utilPct >= 65 && utilPct < 85;
+                  const barColor = isHighStress ? "var(--risk-critical)" : isModStress ? "var(--risk-high)" : "var(--safe)";
+                  const statusText = isHighStress ? "HIGH STRESS / CONGESTION RISK" : isModStress ? "OPTIMAL ABSORPTION" : "SAFE HEADROOM AVAILABLE";
+                  return (
+                    <>
+                      <div style={{ display: "flex", justifyContent: "space-between", fontSize: "10px", marginBottom: "4px" }}>
+                        <span style={{ color: "var(--text-muted)", fontSize: "9px" }}>
+                          Carrying Capacity Stress: <b style={{ color: barColor }}>{utilPct}%</b> ({statusText})
+                        </span>
+                        <span style={{ fontFamily: "var(--font-data)", fontSize: "9px", color: barColor }}>
+                          {cap - occ} slots remaining
+                        </span>
+                      </div>
+                      <div style={{ height: "6px", background: "rgba(255,255,255,0.08)", borderRadius: "999px", overflow: "hidden" }}>
+                        <div
+                          style={{
+                            height: "100%",
+                            width: `${utilPct}%`,
+                            background: barColor,
+                            borderRadius: "999px",
+                            transition: "width 0.3s ease",
+                          }}
+                        />
+                      </div>
+                    </>
+                  );
+                })()}
+              </div>
+            )}
 
             <div className="safe-facilities">
               {s.facilities && s.facilities.length > 0 ? (
@@ -130,11 +168,13 @@ export default function SafeSites() {
               )}
             </div>
 
-            <div style={{ marginTop: 10, fontSize: 9, color: "var(--text-muted)" }}>
-              {s.note || "Mapped operational disaster shelter."}{" "}
+            <div style={{ marginTop: 10, fontSize: 9, color: "var(--text-muted)", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+              <span>
+                {s.note || "Mapped operational disaster shelter & relocation site."}
+              </span>
               {s.source_url && (
-                <a href={s.source_url} target="_blank" rel="noreferrer">
-                  OpenStreetMap source
+                <a href={s.source_url} target="_blank" rel="noreferrer" style={{ color: "var(--brand-soft)" }}>
+                  OSM Verified ↗
                 </a>
               )}
             </div>

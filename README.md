@@ -15,9 +15,34 @@
   <img src="https://img.shields.io/badge/NASA_GIBS-0B3D91?style=for-the-badge&logo=nasa&logoColor=white" alt="NASA GIBS" />
 </p>
 
-<i>An operational decision-support platform designed for disaster management authorities (NDMA, SDRF, District Magistrates, and field response teams) powered entirely by real-time public data, algorithmic evacuation planning, and official escalation corridors.</i>
+<div align="center">
+
+> **Smart India Hackathon (SIH 2026)**  
+> **Problem Statement ID**: `26191`  
+> **Title**: *Intelligent Identification of Hazard-Based Red Zones, Carrying Capacity Assessment, and Immediate Relocation Needs for Vulnerable Habitations*  
+> **Organization**: Ministry of Home Affairs / National Disaster Response Force (NDRF) | **Team**: NOVACORE
 
 </div>
+
+---
+
+## 🎯 SIH PS 26191 Core Architecture & Compliance
+
+RakshaSetu directly solves the mandate of **Problem Statement 26191** by transitioning disaster management from *reactive post-disaster response* to an **intelligent, GIS-enabled proactive decision support platform**:
+
+1. **Dynamic Multi-Hazard Red-Zone Identification**:
+   - Integrates high-resolution multi-hazard intensities across **Landslides**, **Floods**, **Coastal Erosion**, and **Cloudbursts**.
+   - Dynamically designates high-threat settlements as **RED ZONES: Unsuitable for Permanent Habitation** with explicit primary hazard trigger attribution and legal-grade declaration notes.
+2. **3-Tier Relocation Need Prioritization**:
+   - Prioritizes habitations into structured operational windows:
+     - 🔴 **Immediate (0–48 Hours)**: Critical acute threat requiring rapid tactical evacuation.
+     - 🟠 **Short-Term (1–3 Months)**: High recurrent vulnerability requiring pre-monsoon planned relocation.
+     - 🟡 **Medium-Term (6–12 Months)**: Moderate long-term risk requiring sustainable rehabilitation.
+3. **Comprehensive Carrying Capacity Assessment**:
+   - Evaluates alternative safe sites dynamically: evaluates total capacity, pre-occupancy, and net absorption headroom.
+   - Computes **Utilization Stress %** ($(\text{Occupancy} + \text{Evacuee Demand}) / \text{Capacity}$) and activates split multi-site allocation algorithms to mitigate post-evacuation overcrowding and secondary disaster vulnerability.
+4. **Proactive Resettlement vs. Tactical Emergency Mode**:
+   - Seamlessly toggle between long-term strategic rehabilitation planning and rapid 0–48h operational dispatch.
 
 ---
 

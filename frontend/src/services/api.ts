@@ -25,7 +25,7 @@ export const api = {
   },
 
   villages: {
-    list: (p?: { state?: string; region?: string; district?: string; city?: string; level?: string }) => {
+    list: (p?: { state?: string; region?: string; district?: string; city?: string; level?: string; tier?: string; red_zone?: boolean }) => {
       const q = new URLSearchParams();
       const s = p?.state ?? (p?.region ?? savedScope());
       const d = p?.district !== undefined ? p.district : (p ? "" : savedDistrict());
@@ -35,6 +35,8 @@ export const api = {
       if (d) q.set("district", d);
       if (c) q.set("city", c);
       if (p?.level) q.set("level", p.level);
+      if (p?.tier) q.set("tier", p.tier);
+      if (p?.red_zone !== undefined) q.set("red_zone", String(p.red_zone));
 
       return request<Village[]>(`/api/villages${q.toString() ? `?${q}` : ""}`);
     },

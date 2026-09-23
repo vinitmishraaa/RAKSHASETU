@@ -152,10 +152,48 @@ export default function Analytics() {
   const populationAtRisk = useMemo(
     () =>
       villages
-        .filter((v) => v.level === "CRITICAL" || v.level === "HIGH")
+        .filter((v) => v.level === "CRITICAL" || v.level === "HIGH" || v.is_red_zone)
         .reduce((s, v) => s + n(v.population), 0),
     [villages]
   );
+
+  const redZones = useMemo(() => villages.filter((v) => v.is_red_zone), [villages]);
+  const redZonePopulation = useMemo(
+    () => redZones.reduce((s, v) => s + n(v.population), 0),
+    [redZones]
+  );
+
+  const tierCounts = useMemo(
+    () => ({
+      IMMEDIATE: villages.filter((v) => v.relocation_tier === "IMMEDIATE").length,
+      SHORT_TERM: villages.filter((v) => v.relocation_tier === "SHORT_TERM").length,
+      MEDIUM_TERM: villages.filter((v) => v.relocation_tier === "MEDIUM_TERM").length,
+    }),
+    [villages]
+  );
+
+  const tierPieData = useMemo(
+    () => [
+      { name: "Immediate (0–48h)", value: tierCounts.IMMEDIATE, color: "#e5484d" },
+      { name: "Short-Term (1–3m)", value: tierCounts.SHORT_TERM, color: "#f2994a" },
+      { name: "Medium-Term (6–12m)", value: tierCounts.MEDIUM_TERM, color: "#f5c94a" },
+    ].filter((d) => d.value > 0),
+    [tierCounts]
+  );
+
+  const hazardAverages = useMemo(() => {
+    if (!villages.length) return [];
+    const getAvg = (fn: (v: Village) => number | null | undefined) => {
+      const vals = villages.map(fn).filter((x): x is number => typeof x === "number");
+      return vals.length ? Math.round(vals.reduce((a, b) => a + b, 0) / vals.length) : 0;
+    };
+    return [
+      { hazard: "Floods", intensity: getAvg((v) => v.flood_hazard), color: "#38bdf8" },
+      { hazard: "Landslides", intensity: getAvg((v) => v.landslide_hazard), color: "#f97316" },
+      { hazard: "Coastal Erosion", intensity: getAvg((v) => v.coastal_erosion_hazard), color: "#06b6d4" },
+      { hazard: "Cloudbursts", intensity: getAvg((v) => v.cloudburst_hazard), color: "#a855f7" },
+    ];
+  }, [villages]);
 
   const barData = useMemo(
     () =>
@@ -163,6 +201,7 @@ export default function Analytics() {
         name: v.name,
         risk_score: n(v.risk_score),
         level: v.level,
+        is_red_zone: v.is_red_zone,
       })),
     [villages]
   );
@@ -250,17 +289,20 @@ export default function Analytics() {
 
       {state && !loading && (
         <>
-          <div className="analytics-kpis">
-            <Kpi label="MONITORED SETTLEMENTS" value={villages.length} />
-            <Kpi label="POPULATION AT CRITICAL / HIGH RISK" value={populationAtRisk.toLocaleString()} />
-            <Kpi label="CRITICAL ZONES" value={counts.CRITICAL} />
-            <Kpi label="ACTIVE GEOGRAPHIC SCOPE" value={scopeLabel} />
+          <div className="analytics-kpis" style={{ gridTemplateColumns: "repeat(6, minmax(0, 1fr))" }}>
+            <Kpi label="HABITATIONS" value={villages.length} />
+            <Kpi label="IDENTIFIED RED ZONES" value={redZones.length} highlight="var(--risk-critical)" />
+            <Kpi label="IMMEDIATE (0–48h)" value={tierCounts.IMMEDIATE} highlight="#e5484d" />
+            <Kpi label="SHORT-TERM (1–3m)" value={tierCounts.SHORT_TERM} highlight="#f2994a" />
+            <Kpi label="MEDIUM-TERM (6–12m)" value={tierCounts.MEDIUM_TERM} highlight="#f5c94a" />
+            <Kpi label="POPULATION IN RED / HIGH ZONES" value={populationAtRisk.toLocaleString()} />
           </div>
 
-          <div className="analytics-grid">
+          <div className="analytics-grid" style={{ marginBottom: 16 }}>
+            {/* Top row: Settlement Risk Score + 3-Tier Relocation Need Breakdown */}
             <div className="panel" style={{ padding: 20 }}>
-              <h4 className="panel-label">RISK SCORE BY SETTLEMENT (TOP 30)</h4>
-              <ResponsiveContainer width="100%" height={300}>
+              <h4 className="panel-label">RISK SCORE BY HABITATION (TOP 30)</h4>
+              <ResponsiveContainer width="100%" height={280}>
                 <BarChart data={barData}>
                   <CartesianGrid stroke="var(--border-subtle)" strokeDasharray="3 3" vertical={false} />
                   <XAxis
@@ -275,7 +317,7 @@ export default function Analytics() {
                   <Tooltip />
                   <Bar dataKey="risk_score" radius={[4, 4, 0, 0]}>
                     {barData.map((v, i) => (
-                      <Cell key={i} fill={LEVEL_COLORS[v.level] || "#f5c94a"} />
+                      <Cell key={i} fill={v.is_red_zone ? "#e5484d" : LEVEL_COLORS[v.level] || "#f5c94a"} />
                     ))}
                   </Bar>
                 </BarChart>
@@ -283,15 +325,57 @@ export default function Analytics() {
             </div>
 
             <div className="panel" style={{ padding: 20 }}>
-              <h4 className="panel-label">RISK LEVEL DISTRIBUTION</h4>
-              <ResponsiveContainer width="100%" height={300}>
+              <h4 className="panel-label">3-TIER RELOCATION NEED PRIORITIZATION (PS-26191)</h4>
+              <ResponsiveContainer width="100%" height={280}>
+                <PieChart>
+                  <Pie
+                    data={tierPieData}
+                    dataKey="value"
+                    nameKey="name"
+                    innerRadius={55}
+                    outerRadius={95}
+                    paddingAngle={3}
+                  >
+                    {tierPieData.map((d, i) => (
+                      <Cell key={i} fill={d.color} />
+                    ))}
+                  </Pie>
+                  <Legend />
+                  <Tooltip />
+                </PieChart>
+              </ResponsiveContainer>
+            </div>
+          </div>
+
+          <div className="analytics-grid" style={{ marginBottom: 16 }}>
+            {/* Second row: 4-Hazard Intensity Breakdown + Risk Level Distribution */}
+            <div className="panel" style={{ padding: 20 }}>
+              <h4 className="panel-label">MULTI-HAZARD INTENSITY PROFILE (0–100 AVG)</h4>
+              <ResponsiveContainer width="100%" height={260}>
+                <BarChart data={hazardAverages}>
+                  <CartesianGrid stroke="var(--border-subtle)" strokeDasharray="3 3" vertical={false} />
+                  <XAxis dataKey="hazard" stroke="var(--text-muted)" fontSize={10} tickLine={false} axisLine={false} />
+                  <YAxis domain={[0, 100]} stroke="var(--text-muted)" fontSize={10} />
+                  <Tooltip />
+                  <Bar dataKey="intensity" radius={[4, 4, 0, 0]}>
+                    {hazardAverages.map((h, i) => (
+                      <Cell key={i} fill={h.color} />
+                    ))}
+                  </Bar>
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+
+            <div className="panel" style={{ padding: 20 }}>
+              <h4 className="panel-label">RISK SEVERITY LEVEL DISTRIBUTION</h4>
+              <ResponsiveContainer width="100%" height={260}>
                 <PieChart>
                   <Pie
                     data={pieData}
                     dataKey="value"
                     nameKey="name"
-                    innerRadius={58}
-                    outerRadius={96}
+                    innerRadius={55}
+                    outerRadius={95}
                     paddingAngle={3}
                   >
                     {pieData.map((d) => (
@@ -307,23 +391,27 @@ export default function Analytics() {
 
           <div className="analytics-section">
             <div className="panel" style={{ padding: 20 }}>
-              <h4 className="panel-label">DISASTER IMPACT PROFILE & METHODOLOGY</h4>
-              <div className="analytics-stat-row">
+              <h4 className="panel-label">DISASTER IMPACT PROFILE & RELOCATION METHODOLOGY</h4>
+              <div className="analytics-stat-row" style={{ gridTemplateColumns: "repeat(4, minmax(0, 1fr))" }}>
                 <span>
-                  <small>Population at risk</small>
+                  <small>Population at high/critical risk</small>
                   <b>{populationAtRisk.toLocaleString()}</b>
                 </span>
                 <span>
-                  <small>Critical zone share</small>
-                  <b>{villages.length ? Math.round((counts.CRITICAL * 100) / villages.length) : 0}%</b>
+                  <small>Red Zone Habitants</small>
+                  <b style={{ color: "var(--risk-critical)" }}>{redZonePopulation.toLocaleString()}</b>
                 </span>
                 <span>
-                  <small>Data latency</small>
-                  <b>Real-time stream</b>
+                  <small>Red Zone proportion</small>
+                  <b>{villages.length ? Math.round((redZones.length * 100) / villages.length) : 0}%</b>
+                </span>
+                <span>
+                  <small>Data latency & telemetry</small>
+                  <b style={{ color: "var(--safe)" }}>Live Multi-Source</b>
                 </span>
               </div>
-              <p className="data-note">
-                Risk values are computed dynamically from live Open-Meteo precipitation/wind gusts, USGS seismic hypocenter distance and magnitude, and local topographical hazard weights. They serve as actionable decision-support indicators for emergency response teams.
+              <p className="data-note" style={{ marginTop: 12 }}>
+                Aligned with Smart India Hackathon PS 26191: Risk intensities integrate real-time Open-Meteo precipitation, USGS seismic telemetry, slope hazard indices, and historical recurrence to identify Multi-Hazard Red Zones (unsuitable for permanent habitation) and allocate habitations across Immediate (0–48h), Short-Term (1–3m), and Medium-Term (6–12m) horizons.
               </p>
             </div>
           </div>
@@ -333,11 +421,13 @@ export default function Analytics() {
   );
 }
 
-function Kpi({ label, value }: { label: string; value: string | number }) {
+function Kpi({ label, value, highlight }: { label: string; value: string | number; highlight?: string }) {
   return (
     <div className="panel analytics-kpi">
       <span>{label}</span>
-      <strong className="mono">{value}</strong>
+      <strong className="mono" style={highlight ? { color: highlight } : undefined}>
+        {value}
+      </strong>
     </div>
   );
 }

@@ -156,6 +156,35 @@ async def enrich_settlements_with_weather(settlements: list[dict[str, Any]]) -> 
             action = recommended_action(cls["level"])
             trend = catalog_rainfall(v["id"], base_rainfall=v.get("rainfall_mm_month", 250))
 
+            score = indicators["risk_score"]
+            # Dynamic Red-Zone and 3-Tier Relocation classification per SIH Problem Statement 26191
+            if score >= 70 or cls["level"] == "CRITICAL" or v.get("is_red_zone"):
+                tier = "IMMEDIATE"
+                horizon = "0–48 Hours"
+                is_red = True
+                decl = "DECLARED MULTI-HAZARD RED ZONE — UNSUITABLE FOR PERMANENT HABITATION"
+            elif score >= 45 or cls["level"] == "HIGH":
+                tier = "SHORT_TERM"
+                horizon = "1–3 Months"
+                is_red = False
+                decl = "HIGH VULNERABILITY BUFFER ZONE"
+            else:
+                tier = "MEDIUM_TERM"
+                horizon = "6–12 Months"
+                is_red = False
+                decl = "TRANSITIONAL SAFE HABITATION ZONE"
+
+            trigger = v.get("primary_hazard_trigger")
+            if not trigger:
+                if (v.get("landslide_hazard") or 0) > 60:
+                    trigger = "Active Mountain Slope Scarp & High-Altitude Cloudburst"
+                elif (v.get("coastal_erosion_hazard") or 0) > 60:
+                    trigger = "Severe Coastal Inundation & Embankment Erosion"
+                elif (v.get("flood_hazard") or 0) > 60:
+                    trigger = "Riverine Inundation & Embankment Overflow"
+                else:
+                    trigger = "Monsoon Precipitation Vulnerability"
+
             v_enriched = {
                 **v,
                 **indicators,
@@ -169,6 +198,13 @@ async def enrich_settlements_with_weather(settlements: list[dict[str, Any]]) -> 
                 "recommended_action": action,
                 "history": history,
                 "rainfall_trend": trend,
+                "is_red_zone": is_red,
+                "red_zone_declaration": decl,
+                "relocation_tier": tier,
+                "relocation_horizon": horizon,
+                "primary_hazard_trigger": trigger,
+                "coastal_erosion_hazard": v.get("coastal_erosion_hazard", 15),
+                "cloudburst_hazard": v.get("cloudburst_hazard", 20),
                 "data_status": "realtime-enriched",
                 "observed_at": datetime.now(timezone.utc).isoformat(),
             }

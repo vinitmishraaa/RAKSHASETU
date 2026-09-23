@@ -224,18 +224,70 @@ export default function Relocation() {
             </label>
 
             <div className="relocation-context">
-              <b>{selectedVillage.name}</b>
-              <span>
-                {selectedVillage.district || district || "District unmapped"}, {selectedVillage.state || state}
-              </span>
-              <span>
-                Risk Score: <strong>{selectedVillage.risk_score}/100 ({selectedVillage.level})</strong> · Population:{" "}
-                {selectedVillage.population != null ? selectedVillage.population.toLocaleString() : "Not published"}
-              </span>
-              {selectedVillage.reasons && selectedVillage.reasons.length > 0 && (
-                <span style={{ color: "var(--brand-soft)", marginTop: 2 }}>
-                  Primary hazards: {selectedVillage.reasons.join(", ")}
+              {selectedVillage.is_red_zone && (
+                <div
+                  style={{
+                    background: "rgba(255, 23, 68, 0.18)",
+                    border: "1px solid rgba(255, 23, 68, 0.4)",
+                    color: "#ff8095",
+                    padding: "6px 10px",
+                    borderRadius: 6,
+                    fontSize: 10,
+                    fontWeight: 800,
+                    marginBottom: 8,
+                    letterSpacing: "0.04em",
+                  }}
+                >
+                  ⚠️ DECLARED MULTI-HAZARD RED ZONE — UNSUITABLE FOR PERMANENT HABITATION
+                </div>
+              )}
+
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 8 }}>
+                <div>
+                  <b style={{ fontSize: 14 }}>{selectedVillage.name}</b>
+                  <span style={{ display: "block", color: "var(--text-muted)", fontSize: 11 }}>
+                    {selectedVillage.district || district || "District unmapped"}, {selectedVillage.state || state}
+                  </span>
+                </div>
+                <span
+                  style={{
+                    fontSize: 10,
+                    fontWeight: 800,
+                    padding: "3px 8px",
+                    borderRadius: 6,
+                    background:
+                      selectedVillage.relocation_tier === "IMMEDIATE"
+                        ? "rgba(229, 72, 77, 0.2)"
+                        : selectedVillage.relocation_tier === "SHORT_TERM"
+                        ? "rgba(245, 201, 74, 0.2)"
+                        : "rgba(63, 178, 127, 0.2)",
+                    color:
+                      selectedVillage.relocation_tier === "IMMEDIATE"
+                        ? "#ff8095"
+                        : selectedVillage.relocation_tier === "SHORT_TERM"
+                        ? "#f5c94a"
+                        : "#3fb27f",
+                    border: "1px solid var(--border-subtle)",
+                  }}
+                >
+                  {selectedVillage.relocation_horizon || (selectedVillage.level === "CRITICAL" ? "0–48 Hours" : "1–3 Months")}
                 </span>
+              </div>
+
+              <div style={{ fontSize: 11, marginTop: 6, display: "flex", gap: 12, flexWrap: "wrap" }}>
+                <span>
+                  Risk Index: <strong style={{ color: "var(--brand-soft)" }}>{selectedVillage.risk_score}/100 ({selectedVillage.level})</strong>
+                </span>
+                <span>
+                  Population: <strong>{selectedVillage.population != null ? selectedVillage.population.toLocaleString() : "Not published"}</strong>
+                </span>
+              </div>
+
+              {selectedVillage.primary_hazard_trigger && (
+                <div style={{ color: "var(--text-secondary)", fontSize: 10, marginTop: 6 }}>
+                  <strong style={{ color: "var(--text-muted)" }}>Trigger Hazard: </strong>
+                  {selectedVillage.primary_hazard_trigger}
+                </div>
               )}
             </div>
           </>
@@ -279,6 +331,94 @@ export default function Relocation() {
             </div>
           </div>
         </div>
+
+        {/* CARRYING CAPACITY ASSESSMENT (SIH PS 26191) */}
+        {plan?.carrying_capacity_assessment && (
+          <div
+            className="panel"
+            style={{
+              padding: 14,
+              marginTop: 12,
+              background: "linear-gradient(145deg, #0c1f30, #091724)",
+              border: "1px solid rgba(41, 182, 246, 0.25)",
+            }}
+          >
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+              <span className="eyebrow" style={{ color: "var(--brand-soft)" }}>
+                CARRYING CAPACITY ASSESSMENT (PS 26191)
+              </span>
+              <span
+                style={{
+                  fontSize: 9,
+                  fontWeight: 800,
+                  padding: "2px 7px",
+                  borderRadius: 4,
+                  background:
+                    plan.carrying_capacity_assessment.carrying_capacity_status.includes("SAFE")
+                      ? "rgba(16, 185, 129, 0.2)"
+                      : "rgba(245, 158, 11, 0.2)",
+                  color:
+                    plan.carrying_capacity_assessment.carrying_capacity_status.includes("SAFE")
+                      ? "#10b981"
+                      : "#f59e0b",
+                  border: "1px solid currentColor",
+                }}
+              >
+                {plan.carrying_capacity_assessment.carrying_capacity_status.replace(/_/g, " ")}
+              </span>
+            </div>
+
+            <h4 style={{ margin: "8px 0 4px", fontSize: 13 }}>
+              {plan.carrying_capacity_assessment.primary_site_name}
+            </h4>
+
+            {/* Stress Progress Bar */}
+            <div style={{ margin: "10px 0" }}>
+              <div style={{ display: "flex", justifyContent: "space-between", fontSize: 10, marginBottom: 4 }}>
+                <span style={{ color: "var(--text-muted)" }}>Post-Intake Utilization Rate</span>
+                <strong className="mono" style={{ color: plan.carrying_capacity_assessment.stress_level_pct > 85 ? "#ff8095" : "#3fb27f" }}>
+                  {plan.carrying_capacity_assessment.stress_level_pct}%
+                </strong>
+              </div>
+              <div style={{ height: 8, background: "var(--bg-inset)", borderRadius: 4, overflow: "hidden", border: "1px solid var(--border-subtle)" }}>
+                <div
+                  style={{
+                    width: `${Math.min(plan.carrying_capacity_assessment.stress_level_pct, 100)}%`,
+                    height: "100%",
+                    background:
+                      plan.carrying_capacity_assessment.stress_level_pct > 85
+                        ? "linear-gradient(90deg, #f59e0b, #e5484d)"
+                        : "linear-gradient(90deg, #10b981, #29b6f6)",
+                    borderRadius: 4,
+                  }}
+                />
+              </div>
+            </div>
+
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 8, fontSize: 10, textAlign: "center" }}>
+              <div style={{ padding: "6px 4px", background: "var(--bg-inset)", borderRadius: 6 }}>
+                <span style={{ color: "var(--text-muted)", display: "block" }}>Total Capacity</span>
+                <b className="mono">{plan.carrying_capacity_assessment.total_capacity.toLocaleString()}</b>
+              </div>
+              <div style={{ padding: "6px 4px", background: "var(--bg-inset)", borderRadius: 6 }}>
+                <span style={{ color: "var(--text-muted)", display: "block" }}>Safe Headroom</span>
+                <b className="mono" style={{ color: "#10b981" }}>
+                  {plan.carrying_capacity_assessment.available_headroom.toLocaleString()}
+                </b>
+              </div>
+              <div style={{ padding: "6px 4px", background: "var(--bg-inset)", borderRadius: 6 }}>
+                <span style={{ color: "var(--text-muted)", display: "block" }}>Intake Demand</span>
+                <b className="mono" style={{ color: "#29b6f6" }}>
+                  {plan.carrying_capacity_assessment.evacuee_demand.toLocaleString()}
+                </b>
+              </div>
+            </div>
+
+            <p style={{ margin: "10px 0 0", fontSize: 9, color: "var(--text-secondary)", lineHeight: 1.35 }}>
+              {plan.carrying_capacity_assessment.overcrowding_mitigation}
+            </p>
+          </div>
+        )}
 
         {/* DESIGNATED BEST PLAN SUMMARY */}
         {plan && (

@@ -170,6 +170,19 @@ export default function Dashboard() {
     };
   }, [state, district, city]);
 
+  const [relocationTier, setRelocationTier] = useState<string>("");
+  const [mode, setMode] = useState<"PROACTIVE" | "TACTICAL">("TACTICAL");
+
+  const redZonesCount = villages.filter((v) => v.is_red_zone).length;
+  const immediateCount = villages.filter((v) => v.relocation_tier === "IMMEDIATE").length;
+  const shortTermCount = villages.filter((v) => v.relocation_tier === "SHORT_TERM").length;
+  const mediumTermCount = villages.filter((v) => v.relocation_tier === "MEDIUM_TERM").length;
+
+  const displayedVillages = useMemo(() => {
+    if (!relocationTier) return villages;
+    return villages.filter((v) => v.relocation_tier === relocationTier);
+  }, [villages, relocationTier]);
+
   const critical = villages.filter((v) => v.level === "CRITICAL").length;
   const high = villages.filter((v) => v.level === "HIGH").length;
   const knownPopulation = villages.reduce((sum, v) => sum + (v.population ?? 0), 0);
@@ -225,7 +238,7 @@ export default function Dashboard() {
         </div>
       </section>
 
-      {/* Filter Bar: State -> District -> City (City is optional search filter) */}
+      {/* Filter Bar: State -> District -> City -> Relocation Tier & Mode */}
       <FilterBar
         states={states}
         state={state}
@@ -236,8 +249,111 @@ export default function Dashboard() {
         cities={cities}
         city={city}
         setCity={setCity}
+        relocationTier={relocationTier}
+        setRelocationTier={setRelocationTier}
+        mode={mode}
+        setMode={setMode}
         loading={locationLoading}
       />
+
+      {/* SIH PS 26191 OPERATIONAL DECISION INTELLIGENCE BANNER */}
+      <div
+        className="panel"
+        style={{
+          margin: "12px 0",
+          padding: "12px 16px",
+          background:
+            mode === "PROACTIVE"
+              ? "linear-gradient(90deg, rgba(63, 178, 127, 0.12), rgba(11, 27, 42, 0.95))"
+              : "linear-gradient(90deg, rgba(229, 72, 77, 0.12), rgba(11, 27, 42, 0.95))",
+          border: mode === "PROACTIVE" ? "1px solid rgba(63, 178, 127, 0.35)" : "1px solid rgba(229, 72, 77, 0.35)",
+          borderRadius: 12,
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          flexWrap: "wrap",
+          gap: 12,
+        }}
+      >
+        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+          <span
+            style={{
+              padding: "4px 8px",
+              borderRadius: 6,
+              fontSize: 10,
+              fontWeight: 800,
+              background: mode === "PROACTIVE" ? "rgba(63, 178, 127, 0.2)" : "rgba(229, 72, 77, 0.2)",
+              color: mode === "PROACTIVE" ? "#3fb27f" : "#ff8095",
+              border: mode === "PROACTIVE" ? "1px solid rgba(63, 178, 127, 0.4)" : "1px solid rgba(229, 72, 77, 0.4)",
+            }}
+          >
+            {mode === "PROACTIVE" ? "PROACTIVE RESETTLEMENT MODE" : "EMERGENCY TACTICAL MODE"}
+          </span>
+          <span style={{ fontSize: 11, color: "var(--text-secondary)" }}>
+            {mode === "PROACTIVE"
+              ? "Long-term carrying capacity analysis & pre-monsoon habitation relocation planning."
+              : "Live Open-Meteo & USGS feeds linked with 0–48h rapid evacuation corridor dispatch."}
+          </span>
+        </div>
+
+        {/* 3-Tier Relocation Need Quick Badges */}
+        <div style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap" }}>
+          <span
+            style={{
+              fontSize: 11,
+              fontWeight: 700,
+              color: "#ff8095",
+              background: "rgba(229, 72, 77, 0.15)",
+              padding: "4px 9px",
+              borderRadius: 6,
+            }}
+            title="Immediate 0-48h evacuation needs"
+          >
+            🔴 Immediate: <b>{immediateCount}</b>
+          </span>
+          <span
+            style={{
+              fontSize: 11,
+              fontWeight: 700,
+              color: "#f5c94a",
+              background: "rgba(245, 201, 74, 0.15)",
+              padding: "4px 9px",
+              borderRadius: 6,
+            }}
+            title="Short-term 1-3 months pre-monsoon relocation"
+          >
+            🟠 Short-Term: <b>{shortTermCount}</b>
+          </span>
+          <span
+            style={{
+              fontSize: 11,
+              fontWeight: 700,
+              color: "#3fb27f",
+              background: "rgba(63, 178, 127, 0.15)",
+              padding: "4px 9px",
+              borderRadius: 6,
+            }}
+            title="Medium-term 6-12 months permanent resettlement"
+          >
+            🟡 Medium-Term: <b>{mediumTermCount}</b>
+          </span>
+          {redZonesCount > 0 && (
+            <span
+              style={{
+                fontSize: 11,
+                fontWeight: 800,
+                color: "#ff4466",
+                background: "rgba(255, 68, 102, 0.2)",
+                border: "1px solid rgba(255, 68, 102, 0.4)",
+                padding: "4px 9px",
+                borderRadius: 6,
+              }}
+            >
+              ⚠️ {redZonesCount} Red Zones
+            </span>
+          )}
+        </div>
+      </div>
 
       {error && (
         <div className="panel" style={{ margin: "12px 0", padding: 16, borderLeft: "4px solid var(--risk-critical)" }}>
@@ -259,7 +375,7 @@ export default function Dashboard() {
       <section className="command-grid">
         <div className="map-stage">
           <RiskMap
-            villages={villages}
+            villages={displayedVillages}
             safeSites={safeSites}
             liveHazards={mapHazards}
             selectedId={selectedId}

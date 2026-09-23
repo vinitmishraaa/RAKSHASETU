@@ -10,6 +10,10 @@ interface Props {
   cities: string[];
   city: string;
   setCity: (v: string) => void;
+  relocationTier?: string;
+  setRelocationTier?: (v: string) => void;
+  mode?: "PROACTIVE" | "TACTICAL";
+  setMode?: (m: "PROACTIVE" | "TACTICAL") => void;
   loading?: boolean;
 }
 
@@ -23,6 +27,10 @@ export default function FilterBar({
   cities,
   city,
   setCity,
+  relocationTier = "",
+  setRelocationTier,
+  mode = "TACTICAL",
+  setMode,
   loading,
 }: Props) {
   const [citySearch, setCitySearch] = useState("");
@@ -68,6 +76,7 @@ export default function FilterBar({
     setDistrict("");
     setCity("");
     setCitySearch("");
+    if (setRelocationTier) setRelocationTier("");
     localStorage.removeItem("rakshasetu_region");
     localStorage.removeItem("rakshasetu_district");
     localStorage.removeItem("rakshasetu_city");
@@ -81,8 +90,8 @@ export default function FilterBar({
   return (
     <div className="filter-bar">
       <div className="filter-title">
-        <span className="eyebrow">GEOGRAPHIC SCOPE</span>
-        <strong>State / UT → District → City / Town</strong>
+        <span className="eyebrow">GEOGRAPHIC SCOPE & RELOCATION HORIZON</span>
+        <strong>State / UT → District → City</strong>
       </div>
 
       {/* 1. State / UT Selection */}
@@ -113,7 +122,9 @@ export default function FilterBar({
 
       {/* 3. City / Town Selection & Search (Optional) */}
       <div className="filter-field city-filter-group" style={{ position: "relative" }}>
-        <span>3. City / Town <small style={{ color: "var(--text-muted)", fontWeight: "normal" }}>(Optional)</small></span>
+        <span>
+          3. City / Town <small style={{ color: "var(--text-muted)", fontWeight: "normal" }}>(Optional)</small>
+        </span>
         <div style={{ display: "flex", gap: "6px" }}>
           <select
             value={city}
@@ -121,7 +132,7 @@ export default function FilterBar({
             onChange={(e) => cityChange(e.target.value)}
             style={{ flex: 1 }}
           >
-            <option value="">{district ? `-- All cities/towns in ${district} --` : "Select district first"}</option>
+            <option value="">{district ? `-- All cities in ${district} --` : "Select district first"}</option>
             {filteredCities.map((c) => (
               <option key={c} value={c}>
                 {c}
@@ -136,7 +147,7 @@ export default function FilterBar({
               onChange={(e) => setCitySearch(e.target.value)}
               className="city-search-input"
               style={{
-                width: "120px",
+                width: "110px",
                 padding: "6px 8px",
                 fontSize: "12px",
                 borderRadius: "6px",
@@ -150,8 +161,68 @@ export default function FilterBar({
         </div>
       </div>
 
-      {(state || district || city) && (
-        <button className="filter-clear" onClick={clear} title="Reset location filters">
+      {/* 4. 3-TIER RELOCATION NEED FILTER (Per SIH PS 26191) */}
+      {setRelocationTier && (
+        <label className="filter-field">
+          <span>4. Relocation Need Priority</span>
+          <select
+            value={relocationTier}
+            onChange={(e) => setRelocationTier(e.target.value)}
+            style={{ fontWeight: relocationTier ? 700 : "normal" }}
+          >
+            <option value="">All Relocation Tiers</option>
+            <option value="IMMEDIATE">🔴 Immediate (0–48h Evacuation)</option>
+            <option value="SHORT_TERM">🟠 Short-Term (1–3m Monsoon Prep)</option>
+            <option value="MEDIUM_TERM">🟡 Medium-Term (6–12m Resettlement)</option>
+          </select>
+        </label>
+      )}
+
+      {/* 5. PROACTIVE PLANNING vs EMERGENCY TACTICAL MODE */}
+      {setMode && (
+        <div className="filter-field" style={{ minWidth: 160 }}>
+          <span>Operational Mode</span>
+          <div style={{ display: "flex", borderRadius: 8, overflow: "hidden", border: "1px solid var(--border-subtle)" }}>
+            <button
+              type="button"
+              onClick={() => setMode("TACTICAL")}
+              style={{
+                flex: 1,
+                padding: "7px 9px",
+                fontSize: 10,
+                fontWeight: 700,
+                border: 0,
+                cursor: "pointer",
+                background: mode === "TACTICAL" ? "rgba(229, 72, 77, 0.25)" : "var(--bg-inset)",
+                color: mode === "TACTICAL" ? "#ff8095" : "var(--text-muted)",
+              }}
+              title="Emergency response: live weather, seismic feeds, and immediate tactical routing"
+            >
+              ⚡ Tactical
+            </button>
+            <button
+              type="button"
+              onClick={() => setMode("PROACTIVE")}
+              style={{
+                flex: 1,
+                padding: "7px 9px",
+                fontSize: 10,
+                fontWeight: 700,
+                border: 0,
+                cursor: "pointer",
+                background: mode === "PROACTIVE" ? "rgba(63, 178, 127, 0.25)" : "var(--bg-inset)",
+                color: mode === "PROACTIVE" ? "#3fb27f" : "var(--text-muted)",
+              }}
+              title="Proactive planning: long-term red-zone resettlement, carrying capacity allocation, and mitigation"
+            >
+              🛡️ Proactive
+            </button>
+          </div>
+        </div>
+      )}
+
+      {(state || district || city || relocationTier) && (
+        <button className="filter-clear" onClick={clear} title="Reset all filters">
           Reset
         </button>
       )}

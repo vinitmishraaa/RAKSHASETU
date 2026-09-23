@@ -13,6 +13,8 @@ async def list_villages(
     district: str | None = Query(default=None),
     city: str | None = Query(default=None),
     level: str | None = Query(default=None),
+    tier: str | None = Query(default=None),
+    red_zone: bool | None = Query(default=None),
 ):
     """Returns settlements for the selected state/district/city enriched with live data."""
     st = state or region
@@ -24,6 +26,10 @@ async def list_villages(
         villages = [v for v in villages if (v.get("city") or "").casefold() == city.strip().casefold()]
     if level:
         villages = [v for v in villages if (v.get("level") or "").casefold() == level.strip().casefold()]
+    if tier:
+        villages = [v for v in villages if (v.get("relocation_tier") or "").casefold() == tier.strip().casefold()]
+    if red_zone is not None:
+        villages = [v for v in villages if bool(v.get("is_red_zone")) == red_zone]
 
     return villages
 

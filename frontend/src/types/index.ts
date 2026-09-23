@@ -1,4 +1,5 @@
 export type RiskLevel = "CRITICAL" | "HIGH" | "MODERATE" | "LOW";
+export type RelocationTier = "IMMEDIATE" | "SHORT_TERM" | "MEDIUM_TERM";
 
 export interface Village {
   id: string;
@@ -6,6 +7,7 @@ export interface Village {
   district?: string | null;
   state?: string | null;
   region?: string;
+  city?: string | null;
   lat: number;
   lng: number;
   population: number | null;
@@ -41,11 +43,18 @@ export interface Village {
   flood_hazard?: number | null;
   landslide_hazard?: number | null;
   cyclone_hazard?: number | null;
+  coastal_erosion_hazard?: number | null;
+  cloudburst_hazard?: number | null;
   rainfall_mm_month?: number | null;
   reasons?: string[];
   recommended_action?: string;
   history?: { year: number; hazard: string; severity: string }[];
   rainfall_trend?: number[];
+  is_red_zone?: boolean;
+  red_zone_declaration?: string;
+  relocation_tier?: RelocationTier;
+  relocation_horizon?: string;
+  primary_hazard_trigger?: string;
 }
 
 export interface VillageDetail extends Village {
@@ -61,6 +70,7 @@ export interface SafeSite {
   region?: string;
   state?: string | null;
   district?: string | null;
+  city?: string | null;
   lat: number;
   lng: number;
   capacity: number | null;
@@ -90,6 +100,24 @@ export interface RelocationAllocation {
   site_id: string;
   site_name: string;
   people: number;
+  site_capacity?: number;
+  post_occupancy?: number;
+  utilization_pct?: number;
+}
+
+export interface CarryingCapacityAssessment {
+  primary_site_id: string;
+  primary_site_name: string;
+  total_capacity: number;
+  pre_occupancy: number;
+  available_headroom: number;
+  evacuee_demand: number;
+  post_intake_occupancy: number;
+  stress_level_pct: number;
+  carrying_capacity_status: "SAFE_WITHIN_HEADROOM" | "ELEVATED_HEADROOM_STRESS" | "OVERLOAD_PREVENTED_SPLIT_ROUTED" | string;
+  overcrowding_mitigation: string;
+  total_regional_capacity?: number;
+  total_regional_available?: number;
 }
 
 export interface RelocationPlan {
@@ -101,9 +129,15 @@ export interface RelocationPlan {
   allocations: RelocationAllocation[];
   fully_covered: boolean;
   reason: string | null;
+  carrying_capacity_assessment?: CarryingCapacityAssessment | null;
+  relocation_tier?: RelocationTier;
+  relocation_horizon?: string;
+  is_red_zone?: boolean;
+  red_zone_declaration?: string;
+  primary_hazard_trigger?: string;
   guided_flow?: any[];
   advisory_note?: string;
-  scope?: { state?: string | null; region?: string | null; district?: string | null };
+  scope?: { state?: string | null; region?: string | null; district?: string | null; city?: string | null };
 }
 
 export interface Alert {
@@ -149,8 +183,13 @@ export interface LiveHazardFeed {
 export interface RiskSummary {
   total_villages: number;
   counts: Record<RiskLevel, number>;
+  red_zones_count?: number;
+  relocation_tiers?: Record<string, number>;
+  population_by_tier?: Record<string, number>;
   population_at_risk: number | null;
   known_population_records?: number;
+  average_risk_score?: number;
+  hazard_breakdown_avg?: Record<string, number>;
   data_status?: string;
   note?: string;
 }
