@@ -445,6 +445,17 @@ export default function Relocation() {
             <p className="data-note" style={{ marginTop: 8 }}>
               RakshaSetu provides an algorithmic decision-support recommendation to assist disaster authorities. Officials maintain full discretion to adapt routes based on real-time field situations.
             </p>
+            <div style={{ marginTop: 12 }}>
+              <button
+                type="button"
+                className="btn secondary"
+                onClick={() => window.print()}
+                style={{ fontSize: 11, padding: "8px 12px", display: "inline-flex", alignItems: "center", gap: 6 }}
+                title="Generates an official printable decision-support relocation brief for SDMA / DDMA incident commanders"
+              >
+                🖨️ Export / Print Official SDMA Relocation Order
+              </button>
+            </div>
           </div>
         )}
 
@@ -555,7 +566,7 @@ export default function Relocation() {
               </div>
             )}
 
-            <div className="route-actions" style={{ marginTop: 14 }}>
+            <div className="route-actions" style={{ marginTop: 14, display: "flex", gap: 10, flexWrap: "wrap" }}>
               <a
                 className="btn"
                 href={route.google_maps_driving_url}
@@ -565,6 +576,15 @@ export default function Relocation() {
               >
                 Open Google Maps Road Navigation
               </a>
+              <button
+                type="button"
+                className="btn secondary"
+                onClick={() => window.print()}
+                style={{ textAlign: "center", display: "inline-flex", alignItems: "center", gap: 6 }}
+                title="Print official turn-by-turn road evacuation order for vehicle drivers"
+              >
+                🖨️ Print Driver Route Order
+              </button>
             </div>
 
             <p style={{ marginTop: 10, fontSize: 10, color: "var(--text-muted)" }}>

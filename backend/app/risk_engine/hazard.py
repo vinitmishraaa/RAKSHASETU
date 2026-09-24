@@ -1,15 +1,28 @@
-"""Hazard indicator: combines flood, cyclone and landslide hazard signals
-along with real-time weather (Open-Meteo/OpenWeather) and seismic observations (USGS)."""
+"""Hazard indicator for SIH PS-26191:
+Combines the 4 explicit recurring hazards:
+1. Floods
+2. Landslides
+3. Coastal Erosion
+4. Cloudbursts
+along with real-time weather (Open-Meteo precipitation/wind) and seismic observations (USGS)."""
 from __future__ import annotations
 from math import exp
 
-WEIGHTS = {"flood": 0.40, "cyclone": 0.30, "landslide": 0.15, "live_weather": 0.15}
+# Explicit hazard weights for SIH PS-26191
+WEIGHTS = {
+    "flood": 0.25,
+    "landslide": 0.25,
+    "coastal_erosion": 0.15,
+    "cloudburst": 0.15,
+    "live_signals": 0.20,
+}
 
 
 def hazard_score(village: dict, weather: dict | None = None, earthquake: dict | None = None) -> float:
-    base_flood = village.get("flood_hazard", 50)
-    base_cyclone = village.get("cyclone_hazard", 40)
-    base_landslide = village.get("landslide_hazard", 20)
+    base_flood = float(village.get("flood_hazard") or 40.0)
+    base_landslide = float(village.get("landslide_hazard") or 25.0)
+    base_erosion = float(village.get("coastal_erosion_hazard") or 15.0)
+    base_cloudburst = float(village.get("cloudburst_hazard") or 20.0)
 
     # Real-time weather contribution (precipitation and wind speed)
     weather_hazard = 0.0
@@ -33,9 +46,10 @@ def hazard_score(village: dict, weather: dict | None = None, earthquake: dict | 
 
     score = (
         base_flood * WEIGHTS["flood"]
-        + base_cyclone * WEIGHTS["cyclone"]
         + base_landslide * WEIGHTS["landslide"]
-        + dynamic_hazard * WEIGHTS["live_weather"]
+        + base_erosion * WEIGHTS["coastal_erosion"]
+        + base_cloudburst * WEIGHTS["cloudburst"]
+        + dynamic_hazard * WEIGHTS["live_signals"]
     )
     # If dynamic hazard is acute (severe storm or close earthquake), boost overall hazard
     if dynamic_hazard >= 70:

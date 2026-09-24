@@ -15,7 +15,7 @@ export default function TopRibbon() {
     <header className="top-ribbon">
       <NavLink to="/" className="brand-lockup">
         <span className="brand-mark"><span /></span>
-        <span><strong>RakshaSetu</strong><small>COMMAND CENTER</small></span>
+        <span><strong>RakshaSetu</strong><small>MHA · NDRF | PS-26191</small></span>
       </NavLink>
       <nav className="top-nav">
         {LINKS.map((link) => (
@@ -29,7 +29,7 @@ export default function TopRibbon() {
           </NavLink>
         ))}
       </nav>
-      <div className="top-live"><i />LIVE · INDIA</div>
+      <div className="top-live" title="Smart India Hackathon 2026 - Problem Statement 26191"><i />SIH-26191 · GIS DECISION SUPPORT</div>
     </header>
   );
 }

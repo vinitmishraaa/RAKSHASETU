@@ -172,6 +172,7 @@ export default function Dashboard() {
 
   const [relocationTier, setRelocationTier] = useState<string>("");
   const [mode, setMode] = useState<"PROACTIVE" | "TACTICAL">("TACTICAL");
+  const [redZoneOnly, setRedZoneOnly] = useState<boolean>(false);
 
   const redZonesCount = villages.filter((v) => v.is_red_zone).length;
   const immediateCount = villages.filter((v) => v.relocation_tier === "IMMEDIATE").length;
@@ -179,9 +180,15 @@ export default function Dashboard() {
   const mediumTermCount = villages.filter((v) => v.relocation_tier === "MEDIUM_TERM").length;
 
   const displayedVillages = useMemo(() => {
-    if (!relocationTier) return villages;
-    return villages.filter((v) => v.relocation_tier === relocationTier);
-  }, [villages, relocationTier]);
+    let list = villages;
+    if (redZoneOnly) {
+      list = list.filter((v) => v.is_red_zone);
+    }
+    if (relocationTier) {
+      list = list.filter((v) => v.relocation_tier === relocationTier);
+    }
+    return list;
+  }, [villages, relocationTier, redZoneOnly]);
 
   const critical = villages.filter((v) => v.level === "CRITICAL").length;
   const high = villages.filter((v) => v.level === "HIGH").length;
@@ -338,19 +345,24 @@ export default function Dashboard() {
             🟡 Medium-Term: <b>{mediumTermCount}</b>
           </span>
           {redZonesCount > 0 && (
-            <span
+            <button
+              type="button"
+              onClick={() => setRedZoneOnly(!redZoneOnly)}
               style={{
                 fontSize: 11,
                 fontWeight: 800,
-                color: "#ff4466",
-                background: "rgba(255, 68, 102, 0.2)",
+                cursor: "pointer",
+                color: redZoneOnly ? "#ffffff" : "#ff4466",
+                background: redZoneOnly ? "#e5484d" : "rgba(255, 68, 102, 0.2)",
                 border: "1px solid rgba(255, 68, 102, 0.4)",
                 padding: "4px 9px",
                 borderRadius: 6,
+                transition: "all 0.2s ease",
               }}
+              title="Click to isolate only Multi-Hazard Red Zones (Unsuitable for Habitation)"
             >
-              ⚠️ {redZonesCount} Red Zones
-            </span>
+              ⚠️ {redZonesCount} Red Zones {redZoneOnly ? "✓ (FILTER APPLIED)" : ""}
+            </button>
           )}
         </div>
       </div>

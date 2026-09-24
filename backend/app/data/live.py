@@ -149,9 +149,9 @@ async def enrich_settlements_with_weather(settlements: list[dict[str, Any]]) -> 
 
             # Compute risk
             eq_param = nearest_quake if nearest_dist < 400.0 else None
-            indicators = compute_risk(v, weather=weather_data, earthquake=eq_param)
-            cls = classify(indicators["risk_score"])
             history = catalog_history(v["id"])
+            indicators = compute_risk(v, weather=weather_data, earthquake=eq_param, history=history)
+            cls = classify(indicators["risk_score"])
             reasons = explain(v, indicators, history, weather=weather_data, earthquake=eq_param)
             action = recommended_action(cls["level"])
             trend = catalog_rainfall(v["id"], base_rainfall=v.get("rainfall_mm_month", 250))
