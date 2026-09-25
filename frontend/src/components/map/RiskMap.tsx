@@ -145,9 +145,9 @@ export default function RiskMap({
         </LayersControl.Overlay>
       </LayersControl>
 
-      {/* 1. CRITICAL ZONES: Buffering radar blowout expansion animation */}
+      {/* 1. RED ZONES & CRITICAL THREATS: Radar blowout expansion animation */}
       {villages
-        .filter((v) => v.level === "CRITICAL")
+        .filter((v) => v.level === "CRITICAL" || v.is_red_zone)
         .map((v) => {
           const selected = v.id === selectedId;
           const radius = selected ? 22 : 14;
