@@ -161,7 +161,7 @@ export default function FilterBar({
         </div>
       </div>
 
-      {/* 4. 3-TIER RELOCATION NEED FILTER (Per SIH PS 26191) */}
+      {/* 4. 3-TIER RELOCATION NEED FILTER */}
       {setRelocationTier && (
         <label className="filter-field">
           <span>4. Relocation Need Priority</span>

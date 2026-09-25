@@ -157,7 +157,7 @@ async def enrich_settlements_with_weather(settlements: list[dict[str, Any]]) -> 
             trend = catalog_rainfall(v["id"], base_rainfall=v.get("rainfall_mm_month", 250))
 
             score = indicators["risk_score"]
-            # Dynamic Red-Zone and 3-Tier Relocation classification per SIH Problem Statement 26191
+            # Dynamic Red-Zone and 3-Tier Relocation classification per National Multi-Hazard Protocol
             if score >= 70 or cls["level"] == "CRITICAL" or v.get("is_red_zone"):
                 tier = "IMMEDIATE"
                 horizon = "0–48 Hours"

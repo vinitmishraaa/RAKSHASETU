@@ -1,1 +1,252 @@
-.relocation-command{display:grid;grid-template-columns:minmax(0,3fr) minmax(360px,1fr);height:calc(100vh - 64px);min-height:620px}.relocation-map{min-width:0}.relocation-panel{padding:18px;overflow:auto;background:linear-gradient(180deg,#0e1c2b,#0b1725);border-left:1px solid var(--border-subtle)}.relocation-select{display:flex;flex-direction:column;gap:6px;margin-bottom:12px}.relocation-select span,.ranking-panel h4{font-size:10px;color:var(--text-muted);font-weight:800;letter-spacing:.08em}.relocation-select select{background:var(--bg-inset);color:var(--text-primary);border:1px solid var(--border-subtle);border-radius:9px;padding:10px;font-size:12px}.relocation-context{display:flex;flex-direction:column;gap:4px;padding:12px;background:linear-gradient(135deg,rgba(41,182,246,.07),rgba(255,255,255,.015));border:1px solid rgba(41,182,246,.2);border-radius:10px;margin-bottom:12px;font-size:12px}.relocation-context span{font-size:10px;color:var(--text-muted)}.relocation-error{padding:10px 12px;border-radius:9px;border:1px solid rgba(239,83,80,.35);background:rgba(239,83,80,.1);color:#ff9b98;font-size:11px;margin-bottom:12px}.route-status{padding:12px;margin-top:12px;font-size:11px}.route-card{padding:14px;margin-top:12px}.route-card h3{font-size:14px;margin:5px 0 12px}.route-card p{font-size:10px;margin-top:10px;color:var(--text-muted)}.route-metrics{display:grid;grid-template-columns:1fr 1fr;gap:8px}.route-metrics span{background:var(--bg-inset);border:1px solid var(--border-subtle);padding:9px;border-radius:8px}.route-metrics b,.route-metrics small{display:block}.route-metrics b{font-family:var(--font-data);font-size:12px}.route-metrics small{color:var(--text-muted);font-size:9px;margin-top:3px}.route-actions{display:flex;gap:8px;margin-top:12px}.route-actions .btn{flex:1;text-align:center;text-decoration:none}.ranking-panel{padding:14px;margin-top:12px}.ranking-panel h4{margin-bottom:8px}.ranking-row{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 0;border-bottom:1px solid var(--border-subtle)}.ranking-row:last-child{border-bottom:0}.ranking-row strong,.ranking-row small{display:block}.ranking-row strong{font-size:12px}.ranking-row small{font-size:9px;color:var(--text-muted);margin-top:3px}.ranking-row>b{font-family:var(--font-data);font-size:12px;color:var(--brand-soft);white-space:nowrap}.ranking-row .contact-chip{flex-shrink:0}.route-steps{display:grid;gap:8px;margin-top:10px}.route-steps>div{display:grid;grid-template-columns:28px 1fr;gap:8px;align-items:start;padding:8px;border:1px solid var(--border-subtle);border-radius:8px;background:var(--bg-inset)}.route-steps b{font:800 10px var(--font-data);color:var(--brand-soft)}.route-steps span{font-size:10px;line-height:1.35}.route-steps small{display:block;color:var(--text-muted);font-size:8px;margin-top:3px}@media(max-width:900px){.relocation-command{grid-template-columns:1fr;height:auto}.relocation-map{height:480px}.relocation-panel{border-left:0;border-top:1px solid var(--border-subtle)}}
+/* ==========================================================================
+   Relocation Command Module (Gov UI Standards)
+   ========================================================================== */
+
+.relocation-command {
+  display: grid;
+  grid-template-columns: minmax(0, 3fr) minmax(380px, 1fr);
+  height: calc(100vh - 68px);
+  min-height: 620px;
+  background: #f8fafc;
+}
+
+.relocation-map {
+  min-width: 0;
+  position: relative;
+}
+
+.relocation-panel {
+  padding: 20px;
+  overflow-y: auto;
+  background: #ffffff;
+  border-left: 1px solid var(--border-strong);
+  display: flex;
+  flex-direction: column;
+}
+
+.relocation-select {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 14px;
+}
+
+.relocation-select span,
+.ranking-panel h4 {
+  font-size: 10px;
+  color: var(--text-muted);
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.relocation-select select {
+  background: #ffffff;
+  color: var(--text-primary);
+  border: 1px solid var(--border-strong);
+  border-radius: 6px;
+  padding: 10px;
+  font-size: 12px;
+}
+
+.relocation-context {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  padding: 12px 14px;
+  background: #f8fafc;
+  border: 1px solid var(--border-subtle);
+  border-left: 3px solid var(--gov-blue-primary);
+  border-radius: 6px;
+  margin-bottom: 14px;
+  font-size: 12px;
+}
+
+.relocation-context span {
+  font-size: 11px;
+  color: var(--text-secondary);
+}
+
+.relocation-error {
+  padding: 10px 14px;
+  border-radius: 6px;
+  border: 1px solid rgba(220, 38, 38, 0.35);
+  background: rgba(220, 38, 38, 0.08);
+  color: #b91c1c;
+  font-size: 11.5px;
+  margin-bottom: 14px;
+}
+
+.route-status {
+  padding: 12px;
+  margin-top: 14px;
+  font-size: 12px;
+  background: #f8fafc;
+  border: 1px solid var(--border-subtle);
+  border-radius: 6px;
+}
+
+.route-card {
+  padding: 16px;
+  margin-top: 14px;
+  background: #ffffff;
+  border: 1px solid var(--border-subtle);
+  border-radius: 8px;
+}
+
+.route-card h3 {
+  font-size: 14px;
+  margin: 4px 0 10px;
+  color: #0b2545;
+}
+
+.route-card p {
+  font-size: 11px;
+  margin-top: 8px;
+  color: var(--text-secondary);
+}
+
+.route-metrics {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.route-metrics span {
+  background: #f8fafc;
+  border: 1px solid var(--border-subtle);
+  padding: 10px;
+  border-radius: 6px;
+}
+
+.route-metrics b,
+.route-metrics small {
+  display: block;
+}
+
+.route-metrics b {
+  font-family: var(--font-data);
+  font-size: 13px;
+  color: #0b2545;
+}
+
+.route-metrics small {
+  color: var(--text-muted);
+  font-size: 9.5px;
+  font-weight: 600;
+  text-transform: uppercase;
+  margin-top: 2px;
+}
+
+.route-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 14px;
+}
+
+.route-actions .btn {
+  flex: 1;
+  text-align: center;
+  text-decoration: none;
+}
+
+.ranking-panel {
+  padding: 16px;
+  margin-top: 14px;
+  background: #ffffff;
+  border: 1px solid var(--border-subtle);
+  border-radius: 8px;
+}
+
+.ranking-panel h4 {
+  margin-bottom: 10px;
+}
+
+.ranking-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.ranking-row:last-child {
+  border-bottom: 0;
+}
+
+.ranking-row strong,
+.ranking-row small {
+  display: block;
+}
+
+.ranking-row strong {
+  font-size: 12.5px;
+  color: #0f172a;
+}
+
+.ranking-row small {
+  font-size: 10px;
+  color: var(--text-muted);
+  margin-top: 2px;
+}
+
+.ranking-row > b {
+  font-family: var(--font-data);
+  font-size: 12px;
+  color: var(--gov-blue-primary);
+  white-space: nowrap;
+}
+
+.ranking-row .contact-chip {
+  flex-shrink: 0;
+}
+
+.route-steps {
+  display: grid;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.route-steps > div {
+  display: grid;
+  grid-template-columns: 28px 1fr;
+  gap: 10px;
+  align-items: start;
+  padding: 10px;
+  border: 1px solid var(--border-subtle);
+  border-radius: 6px;
+  background: #f8fafc;
+}
+
+.route-steps b {
+  font: 700 11px var(--font-data);
+  color: var(--gov-blue-primary);
+}
+
+.route-steps span {
+  font-size: 11.5px;
+  line-height: 1.4;
+  color: #0f172a;
+}
+
+.route-steps small {
+  display: block;
+  color: var(--text-muted);
+  font-size: 9.5px;
+  margin-top: 3px;
+}
+
+@media (max-width: 900px) {
+  .relocation-command {
+    grid-template-columns: 1fr;
+    height: auto;
+  }
+  .relocation-map {
+    height: 480px;
+  }
+  .relocation-panel {
+    border-left: 0;
+    border-top: 1px solid var(--border-subtle);
+  }
+}

@@ -49,7 +49,7 @@ export default function SafeSites() {
     <div className="page-shell">
       <div className="page-hero">
         <div>
-          <span className="eyebrow">SIH PS-26191 · CARRYING CAPACITY ASSESSMENT & ALTERNATIVE SITES</span>
+          <span className="eyebrow">GOVERNMENT OF INDIA · CARRYING CAPACITY ASSESSMENT & SAFE SITES</span>
           <h2>Relocation Centres & Safe Alternative Sites</h2>
           <p>
             Dynamically assesses absorption headroom and carrying capacity stress of designated safe zones. Mitigates secondary disaster vulnerability and prevents post-evacuation overcrowding.

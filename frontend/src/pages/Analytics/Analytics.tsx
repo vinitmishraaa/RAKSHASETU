@@ -325,7 +325,7 @@ export default function Analytics() {
             </div>
 
             <div className="panel" style={{ padding: 20 }}>
-              <h4 className="panel-label">3-TIER RELOCATION NEED PRIORITIZATION (PS-26191)</h4>
+              <h4 className="panel-label">3-TIER RELOCATION NEED PRIORITIZATION MATRIX</h4>
               <ResponsiveContainer width="100%" height={280}>
                 <PieChart>
                   <Pie
@@ -411,7 +411,7 @@ export default function Analytics() {
                 </span>
               </div>
               <p className="data-note" style={{ marginTop: 12 }}>
-                Aligned with Smart India Hackathon PS 26191: Risk intensities integrate real-time Open-Meteo precipitation, USGS seismic telemetry, slope hazard indices, and historical recurrence to identify Multi-Hazard Red Zones (unsuitable for permanent habitation) and allocate habitations across Immediate (0–48h), Short-Term (1–3m), and Medium-Term (6–12m) horizons.
+                Aligned with National Disaster Management Framework: Multi-hazard risk intensities integrate real-time Open-Meteo meteorological telemetry, USGS seismic observations, slope stability indexes, and historical recurrence to dynamically delineate Multi-Hazard Red Zones (unsuitable for permanent habitation) and allocate habitations across Immediate (0–48h), Short-Term (1–3m), and Medium-Term (6–12m) horizons.
               </p>
             </div>
           </div>

@@ -1,14 +1,14 @@
-"""Hazard indicator for SIH PS-26191:
-Combines the 4 explicit recurring hazards:
+"""Multi-Hazard Risk Engine:
+Combines 4 primary recurring natural hazards:
 1. Floods
 2. Landslides
 3. Coastal Erosion
 4. Cloudbursts
-along with real-time weather (Open-Meteo precipitation/wind) and seismic observations (USGS)."""
+along with real-time meteorological observations (Open-Meteo precipitation/wind) and seismic telemetry (USGS)."""
 from __future__ import annotations
 from math import exp
 
-# Explicit hazard weights for SIH PS-26191
+# Multi-Hazard Component Weights
 WEIGHTS = {
     "flood": 0.25,
     "landslide": 0.25,

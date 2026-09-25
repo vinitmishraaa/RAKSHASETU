@@ -20,7 +20,7 @@ export default function HazardBars({ village }: { village: VillageDetail }) {
     <div className="panel" style={{ padding: 18 }}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 14 }}>
         <h4 style={{ fontSize: 12, color: "var(--text-muted)", margin: 0 }}>
-          MULTI-HAZARD PROFILE (SIH PS 26191)
+          NATIONAL MULTI-HAZARD RISK PROFILE
         </h4>
         {village.is_red_zone && (
           <span style={{ fontSize: 9, fontWeight: 800, color: "#ff8095", background: "rgba(255, 23, 68, 0.15)", padding: "2px 6px", borderRadius: 4, border: "1px solid rgba(255, 23, 68, 0.3)" }}>

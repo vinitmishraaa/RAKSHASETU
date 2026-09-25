@@ -1,7 +1,8 @@
 @echo off
 title RakshaSetu Launcher
 echo ======================================================================
-echo           RAKSHASETU (रक्षासेतु) - SIH PS-26191
+echo       RAKSHASETU (रक्षासेतु) - NATIONAL DISASTER DECISION PLATFORM
+echo       Ministry of Home Affairs / National Disaster Response Force
 echo    Decision Support System for Red Zones ^& Relocation Needs
 echo ======================================================================
 echo.

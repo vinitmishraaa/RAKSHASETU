@@ -1,144 +1,143 @@
 <div align="center">
 
 # 🛡️ RAKSHASETU (रक्षासेतु)
-
-### Real-Time Multi-Hazard Risk Intelligence, Open-Data Monitoring & Guided Evacuation Infrastructure
+### National Multi-Hazard Red-Zone Decision Support & Relocation Management System
+**Government of India · Ministry of Home Affairs (MHA) · National Disaster Response Force (NDRF)**
 
 <p>
+  <img src="https://img.shields.io/badge/Platform-National_Disaster_Intelligence-0B2545?style=for-the-badge&logo=shield&logoColor=white" alt="National Platform" />
+  <img src="https://img.shields.io/badge/Authority-MHA_%7C_NDRF-1D4ED8?style=for-the-badge&logoColor=white" alt="Authority" />
+  <img src="https://img.shields.io/badge/Status-Live_Telemetry_Connected-16A34A?style=for-the-badge&logo=status&logoColor=white" alt="Status" />
   <img src="https://img.shields.io/badge/React-18-61DAFB?style=for-the-badge&logo=react&logoColor=111827" alt="React" />
   <img src="https://img.shields.io/badge/TypeScript-5-3178C6?style=for-the-badge&logo=typescript&logoColor=white" alt="TypeScript" />
-  <img src="https://img.shields.io/badge/Vite-5-646CFF?style=for-the-badge&logo=vite&logoColor=white" alt="Vite" />
   <img src="https://img.shields.io/badge/FastAPI-0.115-009688?style=for-the-badge&logo=fastapi&logoColor=white" alt="FastAPI" />
   <img src="https://img.shields.io/badge/Python-3.11-3776AB?style=for-the-badge&logo=python&logoColor=white" alt="Python" />
   <img src="https://img.shields.io/badge/Leaflet-1.9-199900?style=for-the-badge&logo=leaflet&logoColor=white" alt="Leaflet" />
-  <img src="https://img.shields.io/badge/OpenStreetMap-7EBC6F?style=for-the-badge&logo=openstreetmap&logoColor=white" alt="OpenStreetMap" />
-  <img src="https://img.shields.io/badge/NASA_GIBS-0B3D91?style=for-the-badge&logo=nasa&logoColor=white" alt="NASA GIBS" />
 </p>
-
-<div align="center">
-
-> **Smart India Hackathon (SIH 2026)**  
-> **Problem Statement ID**: `26191`  
-> **Title**: *Intelligent Identification of Hazard-Based Red Zones, Carrying Capacity Assessment, and Immediate Relocation Needs for Vulnerable Habitations*  
-> **Organization**: Ministry of Home Affairs / National Disaster Response Force (NDRF) | **Team**: NOVACORE
 
 </div>
 
 ---
 
-## 🎯 SIH PS 26191 Core Architecture & Compliance
+## 🏛️ Executive Overview
 
-RakshaSetu directly solves the mandate of **Problem Statement 26191** by transitioning disaster management from *reactive post-disaster response* to an **intelligent, GIS-enabled proactive decision support platform**:
+India’s disaster-prone regions face recurrent multi-hazard disruptions including **flash floods**, **landslides**, **coastal erosion**, and **cloudbursts**. Vulnerable habitations historically remain inside high-threat disaster footprints, leading to avoidable loss of lives and critical infrastructure. 
 
-1. **Dynamic Multi-Hazard Red-Zone Identification**:
-   - Integrates high-resolution multi-hazard intensities across **Landslides**, **Floods**, **Coastal Erosion**, and **Cloudbursts**.
-   - Dynamically designates high-threat settlements as **RED ZONES: Unsuitable for Permanent Habitation** with explicit primary hazard trigger attribution and legal-grade declaration notes.
-2. **3-Tier Relocation Need Prioritization**:
-   - Prioritizes habitations into structured operational windows:
-     - 🔴 **Immediate (0–48 Hours)**: Critical acute threat requiring rapid tactical evacuation.
-     - 🟠 **Short-Term (1–3 Months)**: High recurrent vulnerability requiring pre-monsoon planned relocation.
-     - 🟡 **Medium-Term (6–12 Months)**: Moderate long-term risk requiring sustainable rehabilitation.
-3. **Comprehensive Carrying Capacity Assessment**:
-   - Evaluates alternative safe sites dynamically: evaluates total capacity, pre-occupancy, and net absorption headroom.
-   - Computes **Utilization Stress %** ($(\text{Occupancy} + \text{Evacuee Demand}) / \text{Capacity}$) and activates split multi-site allocation algorithms to mitigate post-evacuation overcrowding and secondary disaster vulnerability.
-4. **Proactive Resettlement vs. Tactical Emergency Mode**:
-   - Seamlessly toggle between long-term strategic rehabilitation planning and rapid 0–48h operational dispatch.
+**RakshaSetu (रक्षासेतु)** transitions disaster risk management from *reactive post-calamity emergency response* to an **intelligent, GIS-enabled proactive decision support platform**. Developed under the operational mandate of the **Ministry of Home Affairs (MHA)** and the **National Disaster Response Force (NDRF)**, RakshaSetu dynamically identifies multi-hazard Red Zones unsuitable for permanent habitation, evaluates safe alternative site carrying capacities, and prioritizes vulnerable habitations across structured relocation horizons.
 
 ---
 
-## 🌟 Key Highlights & System Capabilities
+## 🎯 Core Strategic Capabilities
 
-### 1. Strict Geographic Cascade (`State → District → City`)
-- **Pan-India Coverage**: Pre-indexed authoritative administrative directory across all **28 States and 8 Union Territories**.
-- **Official District Accuracy**: Zero random or out-of-state districts. Selecting **West Bengal** displays strictly its **23 official districts** (including *South 24 Parganas*, *North 24 Parganas*, *Darjeeling*, *Howrah*, *Hooghly*, *Purba Medinipur*, etc.). Non-local entities (e.g. *Jaipur*, which belongs to Rajasthan) are strictly isolated to their home states.
-- **Optional City Search**: City/town selection is completely optional with an integrated text search filter.
-- **Immediate State-Level Loading**: Selecting a State immediately loads all monitored villages, safe shelters, live weather signals, and analytics without requiring district or city selection first. Selecting a District refines the view seamlessly.
+### 1. Dynamic Multi-Hazard Red-Zone Delineation
+- Continuously models and integrates 4 primary recurring natural hazards:
+  1. **Floods & Riverine Inundation**: Live rainfall accumulations, upstream runoff, and river basin elevation vulnerability.
+  2. **Landslides & Slope Failure Scarp**: Slope angles, geological slip vulnerability, and terrain saturation.
+  3. **Coastal Erosion & Storm Surge**: Tidal ingress, shoreline retreat rates, and cyclonic wind shear.
+  4. **Cloudbursts & Flash Precipitation**: High-altitude sudden precipitation spikes from real-time meteorological observations.
+- Habitats exceeding critical thresholds ($\text{Risk} \ge 70/100$) are designated as **DECLARED MULTI-HAZARD RED ZONES** (unsuitable for permanent habitation), visualized with expanding animated radar blowout buffers.
 
-### 2. Zero-Key Real-Time Open-Source Data Pipelines
-RakshaSetu connects out-of-the-box to live public APIs without requiring paid keys or synthetic mock data:
+### 2. Evidence-Based 3-Pillar Risk Formulation
+Habitation risk scores ($0\text{--}100$) are calculated via a transparent composite formulation strictly grounded in empirical telemetry:
 
-| Pipeline | Source / API | Purpose & Usage |
+$$\text{Risk Score} = (H \times 0.40) + (V_{\text{pop}} \times 0.35) + (\text{Hist} \times 0.25)$$
+
+- **$H$ (Hazard Intensity - 40%)**: Composite live hazard weighting (Floods 25%, Landslides 25%, Coastal Erosion 15%, Cloudbursts 15%, Live Weather & USGS Seismic Telemetry 20%).
+- **$V_{\text{pop}}$ (Population Vulnerability - 35%)**: Combines demographic susceptibility (infants, elderly, kutcha housing) and spatial isolation ($V \times 0.6 + E \times 0.4$).
+- **$\text{Hist}$ (Disaster History Recurrence - 25%)**: Historical event recurrence frequency and past calamity decadal impacts.
+
+### 3. 3-Tier Relocation Horizons
+Habitations are prioritized into actionable administrative operational windows:
+- 🔴 **Immediate (0–48 Hours Evacuation)**: Acute, imminent hazard threat requiring emergency tactical evacuation and immediate corridor activation.
+- 🟠 **Short-Term (1–3 Months Pre-Monsoon Preparation)**: High recurrent vulnerability requiring scheduled pre-monsoon relocation and temporary relief campus allocation.
+- 🟡 **Medium-Term (6–12 Months Sustainable Resettlement)**: Chronic environmental degradation requiring planned permanent township rehabilitation.
+
+### 4. Alternative Site Carrying Capacity & Absorption Stress Matrix
+- Evaluates designated safe alternative sites, cyclone shelters, and relief campuses.
+- Prevents post-evacuation overcrowding, resource collapse, and secondary hazard exposure by computing:
+  $$\text{Utilization Stress \%} = \frac{\text{Pre-Occupancy} + \text{Incoming Evacuee Demand}}{\text{Total Rated Capacity}} \times 100$$
+- Sites categorized into:
+  - **SAFE ABSORPTION** ($\text{Stress} \le 70\%$): Sufficient shelter headroom, potable water, medical readiness, and backup power.
+  - **MODERATE ABSORPTION** ($70\% < \text{Stress} \le 90\%$): Approaching threshold, activates secondary camp readiness.
+  - **CAPACITY CRITICAL** ($\text{Stress} > 90\%$): Triggers multi-site split allocation protocol to divert evacuees to adjacent campuses.
+
+### 5. Proactive Resettlement vs. Emergency Tactical Modes
+- **Proactive Resettlement Mode**: Focuses on carrying capacity assessment, slope stability indexes, and long-term pre-monsoon town planning.
+- **Emergency Tactical Mode**: Locks into live Open-Meteo precipitation, USGS seismic feeds, 0–48h acute alerts, and OSRM turn-by-turn road route dispatch.
+
+---
+
+## 🌟 Technical Infrastructure & Features
+
+### 1. Authoritative Pan-India Administrative Cascade
+- **100% Pan-India Scope**: Pre-indexed directory across all **28 States and 8 Union Territories**.
+- **Official District Accuracy**: Zero synthetic or misplaced districts. Selecting **West Bengal** displays strictly its **23 official districts** (*South 24 Parganas*, *Darjeeling*, *Howrah*, *Purba Medinipur*, etc.). Non-local districts are isolated strictly to their home states.
+- **Instant State-Level Aggregation**: Selecting a State instantly populates all habitations, safe shelters, live weather observations, and risk analytics without requiring sub-district selection.
+
+### 2. Zero-Key Live Public Telemetry Pipelines
+RakshaSetu operates fully out-of-the-box using open, public, verifiable data feeds:
+
+| Pipeline | Source / API | Operational Usage |
 |---|---|---|
-| **Live Weather Observations** | [Open-Meteo API](https://open-meteo.com/) | Real-time precipitation (mm), temperature (°C), and wind speed (km/h) across Indian coordinates for flood and cyclone risk calculation. |
-| **Seismic Feeds** | [USGS Earthquakes](https://earthquake.usgs.gov/) | Real-time global & Indian subcontinent earthquake feeds; calculates distance to nearest hypocenter and seismic hazard score. |
-| **Official Disaster Alerts** | [NDMA SACHET (CAP)](https://sachet.ndma.gov.in/) | Official Government of India Common Alerting Protocol emergency bulletins and warnings. |
-| **Global Disaster Bulletins** | [GDACS RSS](https://www.gdacs.org/) | Global Disaster Alert and Coordination System multi-hazard feeds (cyclones, floods, earthquakes). |
-| **Road Network Routing** | [OSRM Project](http://project-osrm.org/) | Real turn-by-turn road network geometry, driving distance, and live travel duration calculation. |
-| **Satellite Imagery** | [NASA GIBS](https://www.earthdata.nasa.gov/eosdis/science-system-description/eosdis-components/gibs) | Near-real-time satellite imagery layer (VIIRS true-color) rendered directly on the tactical map. |
-| **Disaster News** | [Google News RSS](https://news.google.com/) | Localized real-time disaster reporting and press advisories. |
-| **Active Fire Hotspots** | [NASA FIRMS](https://firms.modaps.eosdis.nasa.gov/) | *(Optional)* Satellite active thermal hotspot detection via MODIS / VIIRS when API key is provided. |
+| **Live Meteorological Telemetry** | [Open-Meteo API](https://open-meteo.com/) | Real-time precipitation (mm), temperature, and wind speed for flood and storm surge modeling. |
+| **Seismic Observations** | [USGS Earthquakes](https://earthquake.usgs.gov/) | Global & Indian subcontinent real-time earthquake feeds; calculates distance to nearest hypocenter. |
+| **Official Disaster Bulletins** | [NDMA SACHET (CAP)](https://sachet.ndma.gov.in/) | Common Alerting Protocol emergency warnings and bulletins from Government of India authorities. |
+| **Global Disaster Telemetry** | [GDACS RSS](https://www.gdacs.org/) | Global Disaster Alert and Coordination System multi-hazard feeds. |
+| **Road Network Routing** | [OSRM Project](http://project-osrm.org/) | Real turn-by-turn road network geometry, driving distance, and live duration. |
+| **Satellite Imagery** | [NASA GIBS](https://www.earthdata.nasa.gov/eosdis/science-system-description/eosdis-components/gibs) | Near-real-time satellite imagery layer (VIIRS true-color) rendered on the command map. |
+| **Disaster News & Advisories** | [Google News RSS](https://news.google.com/) | Localized real-time disaster advisories and press releases. |
 
-### 3. Dynamic Multi-Hazard Risk Engine
-- Mathematical risk score calculation from `0 to 100`:
-  $$\text{Risk Score} = (H \times 0.40) + (E \times 0.25) + (V \times 0.20) + (A \times 0.15)$$
-  Where $H$ = Live Hazard (Open-Meteo rainfall/wind + USGS seismic), $E$ = Settlement Exposure & Population, $V$ = Structural & Demographic Vulnerability, and $A$ = Road Accessibility / Ingress.
-- Categorized dynamically into:
-  - <span style="color:#e5484d; font-weight:bold;">CRITICAL</span> (Score 75–100)
-  - <span style="color:#f2994a; font-weight:bold;">HIGH</span> (Score 50–74)
-  - <span style="color:#f5c94a; font-weight:bold;">MODERATE</span> (Score 25–49)
-  - <span style="color:#3fb27f; font-weight:bold;">LOW</span> (Score 0–24)
+### 3. Evacuation Corridors & Road Routing
+- Computes genuine turn-by-turn road routes from threatened Red Zones to designated safe shelters via the Open Source Routing Machine (OSRM).
+- Generates step-by-step navigation instructions with road names, distances, maneuvers, and driving duration.
+- Includes 1-click **Open Google Maps Road Navigation** hand-off for field logistics drivers and NDRF evacuation convoys.
 
-### 4. Tactical Map & Visual Animations
-- **Critical Risk Blowout Buffers**: Monitored settlements in the `CRITICAL` risk tier blink with an expanding radar blowout buffer ring (`risk-zone-blowout-critical`) denoting the high-threat perimeter.
-- **Safe Shelter Glow**: Verified emergency shelters pulse with a green protective buffer (`safe-pulse-green`).
-- **Interactive Layers**: Toggle between Base Map, High-Contrast Topo, NASA GIBS Satellite Imagery, Hazard Signals, and Road Network Evacuation Corridors.
+### 4. SDMA Relocation Registry & Official Directives
+- **1-Click SDMA CSV Registry Export**: Generates official state disaster management habitation registers containing habitations, risk scores, red-zone statuses, and 3-tier relocation classifications.
+- **Printable Relocation Orders**: Formal SDMA evacuation directives with unique reference serial numbers, date-stamps, and designated officer signing blocks.
 
-### 5. 4-Step Guided Relocation & Evacuation Corridor
-- **Multi-Criteria Optimization**: Mapped evacuation shelters are ranked algorithmically by distance, verified available capacity, road ingress clearance, and emergency facilities.
-- **4-Step Official Protocol**:
-  1. **Step 1 - Confirm Hazard Perimeter**: Verify danger location, risk score, and exposed population.
-  2. **Step 2 - Designated Safe Shelter**: Review primary shelter capacity allocation and multi-criteria rankings.
-  3. **Step 3 - Compute Road Network Route**: Generate turn-by-turn driving directions with driving ETA via OSRM.
-  4. **Step 4 - Deploy Field Guidance / Navigation**: Seamless hand-off to **Google Maps Driving Navigation** for field transport drivers.
-- **Advisory Transparency**: Clear disclaimers stating RakshaSetu provides algorithmic decision support, leaving full operational discretion to incident commanders.
-
-### 6. Officer Alert Desk & Emergency Escalation
-- **Designated Response Officers**:
-  1. **Anushko Adhikary** (`anushkoadhikary8918@gmail.com`)
-  2. **Medha Mallick** (`medha.mallick2020@gmail.com`)
-  3. **Ayan Acharya** (`ayanacharya06@gmail.com`)
-  4. **Soumyadeep Palit** (`soumyadeeppalit546@gmail.com` )
-  5. **Prithiwi Barui** (`prithiwibarui@gmail.com`)
-  - **Admin / Dispatch Source**: `mishravinit923@gmail.com`
-- **Actionable Dispatch**: Instant **Email** (`mailto:`) and **SMS** (`sms:`) triggers pre-populated with location coordinates, alert severity, and recommended response actions.
-- **Siren Audio Test**: Dual-tone emergency siren generator powered by the Web Audio API (`sawtooth` oscillator alternating between 720 Hz and 420 Hz).
-- **Data Provenance**: Real-time status indicators confirming live connection health for all open data sources.
-
-### 7. Decision Intelligence & Live Risk Analytics
-- Interactive data visualizations built with **Recharts**:
-  - Horizontal Bar Chart of top settlements by risk score.
-  - Donut / Pie Chart showing population distribution across risk tiers.
-  - KPI summary cards (Total Settlements Monitored, Population at Risk, Critical Zones, Active Scope).
+### 5. Automated Emergency Officer Dispatch & Siren Audio
+- Pre-configured emergency escalation desk connecting directly to 5 field coordinators:
+  - **Anushko Adhikary** (`anushkoadhikary8918@gmail.com`)
+  - **Medha Mallick** (`medha.mallick2020@gmail.com`)
+  - **Ayan Acharya** (`ayanacharya06@gmail.com`)
+  - **Soumyadeep Palit** (`soumyadeeppalit546@gmail.com`)
+  - **Prithiwi Barui** (`prithiwibarui@gmail.com`)
+- One-click pre-formatted emergency email and SMS dispatch containing exact GPS coordinates, risk tier, and tactical instructions.
+- Web Audio API dual-tone siren tester (`720 Hz / 420 Hz`) for operational readiness drills.
 
 ---
 
 ## 🏛️ System Architecture
 
 ```text
-                                 REAL-TIME OPEN DATA FEEDS
-                                             │
-         ┌───────────────────┬───────────────┼───────────────┬──────────────────┐
-         ▼                   ▼               ▼               ▼                  ▼
-    Open-Meteo             USGS            NDMA            GDACS               OSRM
-   (Live Weather)      (Seismology)    SACHET (CAP)     (Disasters)       (Road Routing)
-         │                   │               │               │                  │
-         └───────────────────┼───────────────┴───────────────┘                  │
-                             ▼                                                  │
-                 FastAPI Backend Service (:8000)                                │
-                 ├── app/data/administrative.py (36 States/UTs)                 │
-                 ├── app/data/geo_catalog.py (Authoritative Settlements)        │
-                 ├── app/data/live.py (Real-Time Ingestion & Weather)           │
-                 ├── app/risk_engine/scoring.py (Multi-Hazard Scoring)          │
-                 ├── app/optimization/relocation.py (Capacity Allocation)       │
-                 └── app/optimization/routing.py ───────────────────────────────┘
-                             │
-                             ▼ JSON REST Endpoints
-                 React 18 + Vite Frontend (:5173)
-                 ├── FilterBar (State → District → City Cascade)
-                 ├── RiskMap (Leaflet + Animated Radar Blowout Rings)
-                 ├── Guided Relocation (4-Step Corridor + Google Maps)
-                 ├── Officer Alert Desk (5 Officers + Siren Audio Test)
-                 └── Live Analytics (Recharts KPIs & Distributions)
+                                  REAL-TIME PUBLIC DATA TELEMETRY
+                                                 │
+             ┌───────────────────────┬───────────┴───────────┬───────────────────────┐
+             ▼                       ▼                       ▼                       ▼
+        Open-Meteo                 USGS                    NDMA                    OSRM
+       (Live Weather)          (Seismology)            SACHET (CAP)           (Road Routing)
+             │                       │                       │                       │
+             └───────────────────────┼───────────────────────┘                       │
+                                     ▼                                               │
+                         FastAPI Backend (:8000)                                     │
+                         ├── app/data/administrative.py (All 36 States/UTs)          │
+                         ├── app/data/geo_catalog.py (Official Habitations)          │
+                         ├── app/data/live.py (Real-Time Ingestion & Weather)        │
+                         ├── app/risk_engine/hazard.py (4-Hazard Engine)             │
+                         ├── app/risk_engine/scoring.py (0.40H + 0.35V + 0.25Hist)   │
+                         ├── app/optimization/relocation.py (Capacity Matrix)        │
+                         └── app/optimization/routing.py ────────────────────────────┘
+                                     │
+                                     ▼ JSON REST Endpoints
+                         Vite + React 18 Frontend (:5173)
+                         ├── TopRibbon (National Tricolor Bar, Emblem, MHA Branding)
+                         ├── FilterBar (State → District → City Administrative Cascade)
+                         ├── RiskMap (Leaflet + Radar Blowout Buffers + Satellite)
+                         ├── Relocation Desk (4-Step Corridor + Google Maps Hand-off)
+                         ├── Safe Sites Directory (Carrying Capacity & Stress Gauge)
+                         ├── Officer Alert Desk (5 Liaison Officers + Audio Siren)
+                         └── Analytics (Recharts 3-Tier Horizons & 4-Hazard Breakdown)
 ```
 
 ---
@@ -157,7 +156,7 @@ RAKSHASETU/
 │   │   │   ├── relocation.py     # Guided relocation plans & OSRM road routes
 │   │   │   ├── reports.py        # Executive response summaries
 │   │   │   ├── risk.py           # Risk summaries & breakdown indicators
-│   │   │   ├── safesites.py      # Mapped evacuation centres & suitability ranking
+│   │   │   ├── safesites.py      # Mapped evacuation centres & carrying capacity
 │   │   │   └── villages.py       # Settlement queries scoped by State/District/City
 │   │   ├── data/
 │   │   │   ├── administrative.py # Authoritative catalog of all 36 States/UTs & districts
@@ -166,129 +165,139 @@ RAKSHASETU/
 │   │   │   ├── open_data.py      # SACHET, GDACS, FIRMS & News ingestors
 │   │   │   └── synthetic.py      # Catalog fallback bridge
 │   │   ├── optimization/
-│   │   │   ├── relocation.py     # Relocation capacity planner
+│   │   │   ├── relocation.py     # Carrying capacity & absorption stress planner
 │   │   │   ├── routing.py        # OSRM road network router
 │   │   │   └── site_scoring.py   # Multi-criteria shelter ranking
 │   │   ├── risk_engine/
 │   │   │   ├── explainability.py # Transparent scoring rationale generator
-│   │   │   ├── hazard.py         # Weather & seismic hazard calculator
-│   │   │   └── scoring.py        # Multi-hazard composite risk algorithm
+│   │   │   ├── hazard.py         # 4-hazard engine (Floods, Landslides, Erosion, Cloudbursts)
+│   │   │   └── scoring.py        # 3-pillar risk formulation algorithm
 │   │   └── main.py               # FastAPI entry point & CORS configuration
-│   ├── .env.example              # Documented open-source and optional API keys
-│   └── requirements.txt          # Python dependencies
+│   ├── .env.example              # Documented configuration parameters
+│   └── requirements.txt          # Python backend dependencies
 ├── frontend/
 │   ├── src/
 │   │   ├── components/
 │   │   │   ├── alerts/           # Alert summary components
-│   │   │   ├── common/           # FilterBar, RiskBadge, Header, Navigation
+│   │   │   ├── common/           # FilterBar, TopRibbon, Gov Header, Badges
 │   │   │   ├── map/              # RiskMap Leaflet integration & CSS radar animations
 │   │   │   ├── relocation/       # RelocationBox & routing cards
 │   │   │   ├── risk/             # HazardBars, RegionDetailsPanel, SelectedAreaPanel
 │   │   │   └── villages/         # Settlement cards & population profiles
 │   │   ├── pages/
-│   │   │   ├── Alerts/           # Officer Alert Desk, siren test & live hazard feeds
-│   │   │   ├── Analytics/        # Recharts risk distributions & KPIs
+│   │   │   ├── Alerts/           # Early warning desk, siren drill & officer dispatch
+│   │   │   ├── Analytics/        # Disaster analytics, 3-tier horizons & hazard charts
+│   │   │   ├── Assistant/        # AI decision desk for operational officers
 │   │   │   ├── Dashboard/        # Command center map, filter cascade & live panels
-│   │   │   ├── Relocation/       # 4-step guided evacuation corridor & road routing
-│   │   │   ├── SafeSites/        # Mapped emergency shelters directory
-│   │   │   └── Villages/         # Monitored settlements directory
+│   │   │   ├── Relocation/       # Guided evacuation corridor & road routing
+│   │   │   ├── SafeSites/        # Carrying capacity assessment & alternative sites
+│   │   │   └── Villages/         # Field habitations directory & SDMA CSV export
 │   │   ├── services/
 │   │   │   └── api.ts            # Client API client with scope sanitization
 │   │   ├── types/
 │   │   │   └── index.ts          # TypeScript interfaces & risk types
 │   │   ├── App.tsx               # Route definitions
-│   │   └── index.css             # Unified dark glassmorphism design system
+│   │   ├── index.css             # Base reset & structural layout
+│   │   ├── light-theme.css       # Official Government of India design system & palette
+│   │   └── module-polish.css     # Clean card and metric polish
 │   ├── package.json              # Node dependencies & build scripts
 │   └── vite.config.ts            # Vite configuration
+├── start_all.bat                 # One-click Windows development launcher
+├── docker-compose.yml            # Docker deployment configuration
 └── README.md
 ```
 
 ---
 
-## 🚀 Quickstart & Local Setup
+## 🚀 Quickstart & Deployment
 
-### Prerequisites
+### Method 1: One-Click Windows Launcher (Recommended)
+Double-click `start_all.bat` in the repository root. This automatically:
+1. Launches the FastAPI backend service on `http://127.0.0.1:8000`.
+2. Starts the Vite React frontend on `http://localhost:5173`.
+3. Opens your default web browser to the Command Center.
+
+---
+
+### Method 2: Manual Development Setup
+
+#### Prerequisites
 - **Python 3.10+**
 - **Node.js 18+** & **npm**
-- Git
 
-### 1. Clone Repository
+#### Step 1: Backend Setup
 ```bash
-git clone https://github.com/vinitmishraaa/RAKSHASETU.git
-cd RAKSHASETU
-```
-
-### 2. Backend Setup
-```bash
+# Navigate to backend directory
 cd backend
 
-# Create and activate virtual environment
-python -m venv .venv
-# On Windows (PowerShell):
-.\.venv\Scripts\Activate.ps1
-# On Linux/macOS:
-# source .venv/bin/activate
+# Create virtual environment
+python -m venv venv
+
+# Activate virtual environment
+# Windows (PowerShell):
+.\venv\Scripts\Activate.ps1
+# Linux / macOS:
+# source venv/bin/activate
 
 # Install dependencies
 pip install -r requirements.txt
 
-# (Optional) Review environment configuration
-cp .env.example .env
-
-# Launch FastAPI server
+# Start FastAPI server
 uvicorn app.main:app --reload --port 8000
 ```
-Backend will be live at `http://127.0.0.1:8000`  
-Swagger API Docs available at `http://127.0.0.1:8000/docs`
+- Backend API: `http://127.0.0.1:8000`
+- Interactive OpenAPI Docs: `http://127.0.0.1:8000/docs`
 
-### 3. Frontend Setup
+#### Step 2: Frontend Setup
 ```bash
-cd ../frontend
+# Open a new terminal and navigate to frontend directory
+cd frontend
 
-# Install dependencies
+# Install Node dependencies
 npm install
 
-# Start Vite dev server
+# Start Vite development server
 npm run dev
 ```
-Frontend will be live at `http://localhost:5173`
+- Frontend UI: `http://localhost:5173`
 
 ---
 
 ## ⚙️ Environment Configuration (`backend/.env`)
 
-RakshaSetu requires **zero paid keys** to run completely with live data. Optional API keys can be supplied in `backend/.env` for extended functionality:
+RakshaSetu requires **zero paid API keys** to run completely with live data. Optional settings can be supplied in `backend/.env` for extended telemetry:
 
 ```env
 ENV=development
 CORS_ORIGINS=http://localhost:5173,http://127.0.0.1:5173
 
 # Optional: NASA FIRMS (Satellite active fire hotspots)
-# Get a free key at: https://firms.modaps.eosdis.nasa.gov/api/map_key/
+# Free registration at: https://firms.modaps.eosdis.nasa.gov/api/map_key/
 FIRMS_API_KEY=
 
-# Optional: AI Assistant (OpenAI / Gemini / Anthropic)
+# Optional: AI Operational Assistant
 AI_PROVIDER=openai
 OPENAI_API_KEY=
 
-# Optional: Production PostgreSQL + PostGIS connection string
+# Optional: Production PostgreSQL + PostGIS database connection
 DATABASE_URL=
 ```
 
 ---
 
-## 🛡️ Responsible AI & Disaster Data Ethics
-1. **No Hallucinated Hazards**: All hazard scores and bulletins reflect empirical measurements from Open-Meteo, USGS, or official government CAP alerts.
-2. **Operational Decision Support**: Algorithmic routes and site allocations are advisory recommendations to assist disaster responders. Ground personnel always maintain overriding discretion.
-3. **Transparent Provenance**: Every settlement card, alert item, and shelter clearly labels its source, observation timestamp, and data status.
+## 🛡️ Disaster Governance & Operational Transparency
+
+1. **No Hallucinated Hazard Telemetry**: All risk indicators reflect verifiable observations from Open-Meteo, USGS seismology, or official NDMA CAP warning bulletins.
+2. **Algorithmic Decision Support**: RakshaSetu generates evidence-based relocation recommendations and carrying capacity assessments to assist disaster managers; field operational discretion remains with on-ground incident commanders.
+3. **Data Provenance**: Every settlement card, early warning alert, and shelter capacity rating clearly displays its telemetry source, observation timestamp, and verification status.
 
 ---
 
 <div align="center">
 
-**RAKSHASETU — Bridging Risk Intelligence with Rapid Response**  
-*Built for the Smart India Hackathon & National Disaster Resilience*
+**RAKSHASETU (रक्षासेतु) — National Multi-Hazard Decision Support Platform**  
+*Government of India · Ministry of Home Affairs · National Disaster Response Force*
 
-Developed by **[Vinit Mishra](https://github.com/vinitmishraaa)** & Team
+Developed by **[Vinit Mishra](https://github.com/vinitmishraaa)**
 
 </div>

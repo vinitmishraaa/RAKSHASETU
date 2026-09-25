@@ -263,7 +263,7 @@ export default function Dashboard() {
         loading={locationLoading}
       />
 
-      {/* SIH PS 26191 OPERATIONAL DECISION INTELLIGENCE BANNER */}
+      {/* OPERATIONAL DECISION INTELLIGENCE BANNER */}
       <div
         className="panel"
         style={{

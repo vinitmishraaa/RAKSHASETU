@@ -102,7 +102,7 @@ export default function Villages() {
     <div className="villages-page">
       <div className="villages-header">
         <div>
-          <span className="eyebrow">SIH PS-26191 · FIELD HABITATION REGISTRY</span>
+          <span className="eyebrow">NATIONAL DISASTER MANAGEMENT REGISTRY · FIELD HABITATIONS</span>
           <h2>Monitored Settlements & Red Zones</h2>
           <p>{state ? `${state} monitored habitations` : "National monitored habitations"}</p>
         </div>

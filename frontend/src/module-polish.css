@@ -1,1 +1,155 @@
-.safe-site-page-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}.safe-site-detail-card{padding:15px;border:1px solid var(--border-subtle);border-radius:15px;background:linear-gradient(145deg,#0b2031,#071521);box-shadow:var(--shadow-panel);transition:.2s}.safe-site-detail-card:hover{border-color:var(--safe);transform:translateY(-2px)}.safe-site-detail-head{display:flex;justify-content:space-between;gap:14px}.safe-site-detail-head>div{display:flex;flex-direction:column;gap:6px}.safe-site-detail-head h3{font-size:14px}.safe-site-detail-head small{font-size:8px;color:var(--text-muted)}.safe-site-detail-head>strong{font:700 16px var(--font-data);color:var(--safe);white-space:nowrap}.safe-site-detail-head>strong small{display:block;font:500 7px var(--font-data);color:var(--text-muted)}.safe-metric-grid{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin:14px 0}.safe-metric-grid span{padding:8px;border:1px solid var(--border-subtle);border-radius:9px;background:#091723;display:flex;flex-direction:column;gap:3px}.safe-metric-grid small{font-size:7px;color:var(--text-muted)}.safe-metric-grid b{font:700 10px var(--font-data)}.safe-occupancy>div{display:flex;justify-content:space-between;margin-bottom:5px}.safe-occupancy small{font-size:8px;color:var(--text-muted)}.safe-occupancy b{font:700 8px var(--font-data)}.safe-occupancy i{height:7px;display:block;background:#14283a;border-radius:999px;overflow:hidden}.safe-occupancy em{height:100%;display:block;background:linear-gradient(90deg,var(--safe),var(--brand));border-radius:999px}.safe-facilities{display:flex;gap:5px;flex-wrap:wrap;margin-top:11px}.safe-facilities span{padding:4px 6px;border:1px solid var(--border-subtle);border-radius:999px;font-size:7px;color:#a9c4d7;background:#08141f}@media(max-width:1100px){.safe-site-page-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}@media(max-width:650px){.safe-site-page-grid{grid-template-columns:1fr}}
+/* ==========================================================================
+   Module Polish: Safe Sites & Detailed Views (Gov UI Standards)
+   ========================================================================== */
+
+.safe-site-page-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.safe-site-detail-card {
+  padding: 16px;
+  border: 1px solid var(--border-subtle);
+  border-radius: 8px;
+  background: #ffffff;
+  box-shadow: var(--shadow-panel);
+  transition: all 0.15s ease;
+  display: flex;
+  flex-direction: column;
+}
+
+.safe-site-detail-card:hover {
+  border-color: var(--gov-blue-primary);
+  box-shadow: 0 4px 14px rgba(15, 23, 42, 0.08);
+  transform: translateY(-1px);
+}
+
+.safe-site-detail-head {
+  display: flex;
+  justify-content: space-between;
+  gap: 14px;
+  align-items: flex-start;
+}
+
+.safe-site-detail-head > div {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.safe-site-detail-head h3 {
+  font-size: 15px;
+  font-weight: 700;
+  color: #0b2545;
+  margin: 0;
+}
+
+.safe-site-detail-head small {
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+.safe-site-detail-head > strong {
+  font: 700 16px var(--font-data);
+  color: var(--safe);
+  white-space: nowrap;
+  text-align: right;
+}
+
+.safe-site-detail-head > strong small {
+  display: block;
+  font: 600 9px var(--font-data);
+  color: var(--text-muted);
+  text-transform: uppercase;
+}
+
+.safe-metric-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin: 14px 0;
+}
+
+.safe-metric-grid span {
+  padding: 8px 10px;
+  border: 1px solid var(--border-subtle);
+  border-radius: 6px;
+  background: var(--bg-inset);
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.safe-metric-grid small {
+  font-size: 9px;
+  color: var(--text-muted);
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.safe-metric-grid b {
+  font: 700 12px var(--font-data);
+  color: #0b2545;
+}
+
+.safe-occupancy > div {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 5px;
+}
+
+.safe-occupancy small {
+  font-size: 10px;
+  color: var(--text-muted);
+  font-weight: 600;
+}
+
+.safe-occupancy b {
+  font: 700 10px var(--font-data);
+  color: var(--text-primary);
+}
+
+.safe-occupancy i {
+  height: 8px;
+  display: block;
+  background: #e2e8f0;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.safe-occupancy em {
+  height: 100%;
+  display: block;
+  background: linear-gradient(90deg, #16a34a, #1d4ed8);
+  border-radius: 4px;
+}
+
+.safe-facilities {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin-top: 12px;
+}
+
+.safe-facilities span {
+  padding: 3px 8px;
+  border: 1px solid var(--border-subtle);
+  border-radius: 4px;
+  font-size: 9.5px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  background: #f1f5f9;
+}
+
+@media (max-width: 1100px) {
+  .safe-site-page-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 650px) {
+  .safe-site-page-grid {
+    grid-template-columns: 1fr;
+  }
+}

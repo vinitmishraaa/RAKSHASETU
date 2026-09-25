@@ -332,7 +332,7 @@ export default function Relocation() {
           </div>
         </div>
 
-        {/* CARRYING CAPACITY ASSESSMENT (SIH PS 26191) */}
+        {/* CARRYING CAPACITY ASSESSMENT & SAFE SITE ABSORPTION */}
         {plan?.carrying_capacity_assessment && (
           <div
             className="panel"
@@ -345,7 +345,7 @@ export default function Relocation() {
           >
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
               <span className="eyebrow" style={{ color: "var(--brand-soft)" }}>
-                CARRYING CAPACITY ASSESSMENT (PS 26191)
+                SAFE SITE CARRYING CAPACITY ASSESSMENT
               </span>
               <span
                 style={{
